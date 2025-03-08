@@ -3,9 +3,9 @@
     <div v-if="$slots.headerTop" style="margin: 5px">
       <slot name="headerTop"></slot>
     </div>
-    <div v-if="showSelectionBar" style="margin: 5px">
+    <!-- <div v-if="showSelectionBar" style="margin: 5px">
       <TableSelectionBar :clearSelectedRowKeys="props.clearSelectedRowKeys!" :count="props.count" />
-    </div>
+    </div> -->
     <div class="flex items-center">
       <slot name="tableTitle" v-if="$slots.tableTitle"></slot>
       <TableTitle

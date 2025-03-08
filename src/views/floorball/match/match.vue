@@ -20,7 +20,7 @@
         >
           <img :src="rectangle.imgPath" alt="Player Image" class="w-full h-full object-contain" />
         </div>
-        <p class="text-center mt-2 text-gray-700 font-medium">ID: {{ rectangle.track_id }}</p>
+        <!-- <p class="text-center mt-2 text-gray-700 font-medium">ID: {{ rectangle.track_id }}</p> -->
       </div>
     </div>
   </div>

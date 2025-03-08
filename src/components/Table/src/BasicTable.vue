@@ -9,6 +9,7 @@
       @register="registerForm"
       @submit="handleSearchInfoChange"
       @advanced-change="redoHeight"
+      :style="{ marginBottom: '0px' }"
     >
       <template #[replaceFormSlotKey(item)]="data" v-for="item in getFormSlotKeys">
         <slot :name="item" v-bind="data || {}"></slot>

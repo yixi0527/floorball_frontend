@@ -1,6 +1,6 @@
 <template>
-  <div class="p-4">
-    <BasicTable @register="registerTable" @edit-change="onEditChange" :role="'user'">
+  <div>
+    <BasicTable @register="registerTable" @edit-change="onEditChange" :showSelectionBar="false">
       <template #bodyCell="{ column, record }">
         <template v-if="column.key === 'action'">
           <TableAction :actions="createActions(record)" />
@@ -11,7 +11,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, onMounted, h } from 'vue';
+  import { ref, onMounted, computed, defineProps, h, defineExpose } from 'vue';
   import { cloneDeep } from 'lodash-es';
   import {
     BasicTable,
@@ -26,21 +26,17 @@
   import { cardList } from './data';
   import defaultImage from '@/assets/images/defaultPlayerPhoto.jpg';
 
-  const columns: BasicColumn[] = [
-    {
-      title: 'ID',
-      dataIndex: 'playerId',
-      width: 60,
-      sorter: true,
-    },
+  const props = defineProps<{ columns?: BasicColumn[] }>();
+
+  const defaultColumns: BasicColumn[] = [
+    { title: 'ID', dataIndex: 'playerId', width: 60, sorter: true },
     {
       title: '赛场照片',
       dataIndex: 'playerPhoto',
       width: 80,
       sorter: false,
       customRender: ({ record }) => {
-        const imageUrl =
-          record.playerPhoto && record.playerPhoto.trim() ? record.playerPhoto : defaultImage;
+        const imageUrl = record.playerPhoto?.trim() ? record.playerPhoto : defaultImage;
         return h('img', {
           src: imageUrl,
           alt: 'Player Photo',
@@ -48,54 +44,30 @@
         });
       },
     },
-    {
-      title: '名称',
-      dataIndex: 'playerName',
-      width: 150,
-      editRow: true,
-      sorter: true,
-    },
-    {
-      title: '角色',
-      dataIndex: 'playerRole',
-      width: 150,
-      editRow: true,
-      sorter: true,
-    },
-    {
-      title: '参与比赛次数',
-      dataIndex: 'contests',
-      width: 100,
-      sorter: true,
-    },
+    { title: '名称', dataIndex: 'playerName', width: 150, editRow: true, sorter: true },
+    { title: '角色', dataIndex: 'playerRole', width: 150, editRow: true, sorter: true },
+    { title: '参与比赛次数', dataIndex: 'contests', width: 100, sorter: true },
   ];
 
+  const columns = computed(() => props.columns || defaultColumns);
   const data = ref<any[]>([]);
-
   const { createMessage: msg } = useMessage();
   const currentEditKeyRef = ref('');
 
   const [registerTable, methods] = useTable({
     title: '队伍管理',
     titleHelpMessage: ['队伍管理'],
-    columns: columns,
+    columns: columns.value,
     showIndexColumn: false,
     showTableSetting: true,
     tableSetting: { fullScreen: true },
-    actionColumn: {
-      width: 80,
-      title: '操作',
-      dataIndex: 'action',
-    },
-    rowSelection: {
-      type: 'checkbox',
-    },
+    actionColumn: { width: 80, title: '操作', dataIndex: 'action' },
+    rowSelection: { type: 'checkbox' },
     showSelectionBar: true,
     useSearchForm: true,
     formConfig: getFormConfig(),
   });
 
-  // 组件挂载时获取数据
   onMounted(async () => {
     data.value = cardList;
     methods.setTableData(data.value);
@@ -105,23 +77,12 @@
     return {
       labelWidth: 100,
       schemas: [
-        {
-          field: `playerId`,
-          label: `运动员ID`,
-          component: 'Input',
-          colProps: {
-            xl: 12,
-            xxl: 8,
-          },
-        },
+        // { field: `playerId`, label: `运动员ID`, component: 'Input', colProps: { xl: 12, xxl: 8 } },
         {
           field: `playerName`,
-          label: `运动员名`,
+          label: `运动员姓名`,
           component: 'Input',
-          colProps: {
-            xl: 12,
-            xxl: 8,
-          },
+          colProps: { xl: 12, xxl: 8 },
         },
       ],
     };
@@ -130,70 +91,45 @@
   function handleEdit(record: EditRecordRow) {
     currentEditKeyRef.value = record.key;
     if (!record.originalData) {
-      record.originalData = cloneDeep(record);
+      record.originalData = cloneDeep(record); // 保存原始数据副本
     }
     record.onEdit?.(true);
   }
 
-  function handleCancel(record: EditRecordRow) {
-    currentEditKeyRef.value = '';
-    record.onEdit?.(false, false);
-  }
-
-  async function updatePlayer(changedData: any) {
-    const playerId = changedData.playerId;
-    const url = `/api/playerdata/update/${playerId}`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(changedData),
-      });
-
-      if (response.ok) {
-        msg.success({ content: '数据已保存', key: 'saving' });
-      } else {
-        console.error('Error updating data:', response);
-        msg.error({ content: '保存数据失败', key: 'saving' });
-      }
-    } catch (error) {
-      console.error('Error during update request:', error);
-      msg.error({ content: '保存数据失败', key: 'saving' });
-    }
-  }
-
   async function handleSave(record: EditRecordRow) {
     msg.loading({ content: '正在保存...', duration: 0, key: 'saving' });
-
     const valid = await record.onValid?.();
     if (valid) {
       try {
         const originalData = record.originalData;
-        const editedData = cloneDeep(record.editValueRefs?.value || {});
+        const editedData = cloneDeep(record.editValueRefs);
 
         // 过滤出发生变化的字段
         const changedData: Partial<typeof editedData> = {};
         for (const key in editedData) {
-          if (editedData[key] !== originalData[key] && key !== 'playerId') {
+          if (editedData[key] !== originalData[key] && key !== 'userID') {
             changedData[key] = editedData[key];
           }
         }
 
+        // 如果没有变化的数据，不进行API调用
         if (Object.keys(changedData).length === 0) {
           msg.info({ content: '未检测到数据变更', key: 'saving' });
           return;
         }
 
-        changedData.playerId = originalData.playerId; // 确保包含playerId
-        delete changedData.playerName; // 避免多余数据
+        changedData.userID = record.userID; // 保留userID用于API调用
 
+        // 修改正在编辑状态
         const pass = await record.onEdit?.(false, true);
         if (pass) {
           currentEditKeyRef.value = '';
-          await updatePlayer(changedData);
+          console.log('update data', changedData);
+          // 提交服务器保存
+          await AdminUpdateUserInfoApi(changedData).then((res) => {
+            console.log(res);
+            msg.success({ content: '数据已保存', key: 'saving' });
+          });
         }
       } catch (error) {
         msg.error({ content: '保存失败', key: 'saving' });
@@ -202,7 +138,6 @@
       msg.error({ content: '请填写正确的数据', key: 'saving' });
     }
   }
-
   function createActions(record: EditRecordRow): ActionItem[] {
     if (!record.editable) {
       return [
@@ -213,18 +148,25 @@
         },
       ];
     }
-    return [
-      {
-        label: '保存',
-        onClick: () => handleSave(record),
-      },
-      {
-        label: '取消',
-      },
-    ];
+    return [{ label: '保存', onClick: () => handleSave(record) }, { label: '取消' }];
   }
 
   function onEditChange({ column, value, record }) {
     console.log(column, value, record);
   }
+
+  function getSelectedRowsPlayerId() {
+    const selectedRows = methods.getSelectRows();
+    if (!selectedRows || selectedRows.length === 0) {
+      console.log('No rows selected');
+      return 0;
+    } else if (selectedRows.length > 1) {
+      console.log('Multiple rows selected');
+      return -1;
+    }
+    console.log('Selected Rows:', selectedRows);
+    return selectedRows[0].playerId;
+  }
+
+  defineExpose({ getSelectedRowsPlayerId });
 </script>
