@@ -32,7 +32,6 @@
   const emit = defineEmits(['next', 'task-id', 'borderWidth']);
 
   const handleBorderWidth = (borderWidth: number) => {
-    console.log('borderWidth in step 1', borderWidth);
     emit('borderWidth', borderWidth);
   };
 
@@ -40,13 +39,9 @@
     emit('next');
   }
 
-  function handleChange(fileList: any) {
-    // 处理文件列表变化
-    console.log(fileList);
-  }
+  function handleChange(fileList: any) {}
 
   function handleTaskId(ReceivedtaskId) {
-    console.log('taskId in step 1', ReceivedtaskId);
     emit('task-id', ReceivedtaskId);
   }
 </script>

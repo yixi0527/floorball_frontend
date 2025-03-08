@@ -89,7 +89,6 @@
     const img = event.target;
     imageWidth.value = img.naturalWidth;
     imageHeight.value = img.naturalHeight;
-    console.log(`Image width: ${imageWidth.value}, Image height: ${imageHeight.value}`);
   };
 
   const startDrag = (index, event) => {
@@ -130,10 +129,6 @@
 
   // 计算实际坐标
   const getActualCoordinates = () => {
-    const wrapper = document.querySelector('.image-container');
-    const rect = wrapper.getBoundingClientRect();
-    const scaleX = rect.width / imageSize.value.width;
-    const scaleY = rect.height / imageSize.value.height;
     return points.value.map((point) => ({
       x: Math.round((point.x / 100) * (imageWidth.value + 2 * borderWidth.value)),
       y: Math.round((point.y / 100) * (imageHeight.value + 2 * borderWidth.value)),

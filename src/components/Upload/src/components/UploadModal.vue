@@ -142,12 +142,10 @@
   function handleUpdateBorderWidth(val: any) {
     borderWidth.value = val;
     emit('borderWidth', val);
-    console.log('handleUpdateBorderWidth', val);
   }
 
   function handleUpdatePoints(val: any) {
     coordinates.value = val;
-    console.log('handleUpdatePoints', val);
   }
 
   // 上传前校验
@@ -207,10 +205,6 @@
   }
 
   async function uploadApiByItem(item: FileItem) {
-    // const { api } = props;
-    // if (!api || !isFunction(api)) {
-    //   return warn('upload api must exist and be a function');
-    // }
     try {
       item.status = UploadResultStatus.UPLOADING;
       const formData = new FormData();
@@ -223,7 +217,6 @@
       });
       const res = await ret.json();
       const { taskId } = res;
-      console.log('taskId', taskId);
       emit('taskId', taskId);
       item.status = UploadResultStatus.SUCCESS;
       if (props.resultField) {

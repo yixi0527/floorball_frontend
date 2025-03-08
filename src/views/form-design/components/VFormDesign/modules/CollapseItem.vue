@@ -20,9 +20,6 @@
           @dragstart="$emit('add-attrs', list, index)"
           @click="$emit('handle-list-push', element)"
         >
-          <!-- <svg v-if="element.icon.indexOf('icon-') > -1" class="icon" aria-hidden="true">
-            <use :xlink:href="`#${element.icon}`" />
-          </svg> -->
           <Icon :icon="element.icon" />
           {{ element.label }}</li
         ></template

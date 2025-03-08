@@ -113,7 +113,6 @@
     // 查询任务状态
     const response = await fetch(`/api/task/${props.taskId}/frame/${frame_id}`);
     const data = await response.json();
-    console.log('original path', data.frame_path);
     return data.frame_path;
   };
 
@@ -144,14 +143,11 @@
     itemInfo.value.status = item.status;
     itemInfo.value.taskId = props.taskId;
 
-    console.log('itemInfo:', itemInfo.value);
-
     if (assigntaskRef.value) {
       assigntaskRef.value.updateMaskPosition();
     }
 
     await waitForUserAction();
-    console.log('after prev', currentTaskIndex.value);
   }
 
   function customSubmitFunc() {
@@ -184,7 +180,6 @@
     taskId: '',
   });
   const getAllTasks = async () => {
-    console.log('get all tasks');
     // 查询任务状态
     const response = await fetch(`/api/task/${props.taskId}/annotations`);
     const data = await response.json();
@@ -216,7 +211,6 @@
     while (currentTaskIndex.value < keys.length) {
       const key = keys[currentTaskIndex.value]; // 获取当前任务的key
       const item = tasks.value[key]; // 使用key从tasks中获取对应的任务
-      console.log('item:', item);
       itemInfo.value.key = currentTaskIndex.value + 1;
       itemInfo.value.track_id = item.track_id;
       itemInfo.value.tlwh = item.tlwh;
@@ -224,7 +218,6 @@
       itemInfo.value.targetUrl = getUrlPath(item.target_image_path);
       itemInfo.value.status = item.status;
       itemInfo.value.taskId = props.taskId;
-      console.log('itemInfo:', itemInfo.value);
       if (assigntaskRef.value) {
         assigntaskRef.value.updateMaskPosition();
       }
@@ -232,9 +225,7 @@
       await waitForUserAction();
       // 操作完成后，更新任务状态
       currentTaskIndex.value += 1;
-      console.log('main circle:', currentTaskIndex.value);
     }
-    console.log('所有任务已完成');
   }
 
   // 定义等待用户操作的函数，每次调用都会返回一个新的 Promise
@@ -252,13 +243,11 @@
     waitingResolvers = []; // 清空等待列表，防止重复调用
   }
   const pollTaskStatus = async () => {
-    console.log('borderWidth in step 2', props.borderWidth);
     if (props.taskId === '') {
       return;
     }
     const interval = setInterval(async () => {
       const response = await checkTaskStatus();
-      console.log('查询任务状态：', response);
       if (
         response.status === 'completed' ||
         (response.status != 'processing' &&
@@ -296,7 +285,6 @@
     }, 1000);
   };
   onMounted(() => {
-    console.log('taskId in step 2', props.taskId);
     pollTaskStatus();
   });
 </script>

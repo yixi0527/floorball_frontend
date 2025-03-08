@@ -1,20 +1,10 @@
-// data.ts
+import { GetPlayerModel } from '@/api/floorball/model/playerModel';
 
-type PlayerData = {
-  playerId: number;
-  playerName: string;
-  playerPhoto: string;
-  playerRole: string;
-  videoUuids: string[];
-};
-
-// 获取并格式化数据
 export const fetchPlayerData = async (): Promise<any[]> => {
   try {
     const response = await fetch('http://127.0.0.1:8001/playerdata');
     console.log('Response:', response);
-    const data: PlayerData[] = await response.json();
-
+    const data: GetPlayerModel[] = await response.json();
     // 格式化数据
     const result = data.map((player) => ({
       id: player.playerId,
@@ -28,7 +18,6 @@ export const fetchPlayerData = async (): Promise<any[]> => {
       progress: player.videoUuids.length * 20, // 假设每个视频占 20% 进度
     }));
     console.log;
-
     return result;
   } catch (error) {
     console.error('Failed to fetch player data:', error);

@@ -22,7 +22,7 @@ export const asyncRoutes = [PAGE_NOT_FOUND_ROUTE, ...routeModuleList];
 export const RootRoute: AppRouteRecordRaw = {
   path: '/',
   name: 'Root',
-  redirect: '@/views/step/index.vue',
+  redirect: '/parsevideoPage',
   // component: () => import('@/views/step/index.vue'),
   meta: {
     title: 'Root',

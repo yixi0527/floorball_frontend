@@ -68,11 +68,11 @@ export const basicProps = {
     type: Object as PropType<any>,
     default: () => ({}),
   },
-  api: {
-    type: Function as PropType<PromiseFn>,
-    default: null,
-    required: true,
-  },
+  // api: {
+  //   type: Function as PropType<PromiseFn>,
+  //   default: null,
+  //   required: true,
+  // },
   name: {
     type: String as PropType<string>,
     default: 'file',

@@ -45,24 +45,16 @@
     imageHeight.value = img.height;
     imageOriginalWidth.value = img.naturalWidth;
     imageOriginalHeight.value = img.naturalHeight;
-    console.log(`Image width: ${imageWidth.value}, Image height: ${imageHeight.value}`);
-    console.log(
-      `Image original width: ${imageOriginalWidth.value}, Image original height: ${imageOriginalHeight.value}`,
-    );
     updateMaskPosition();
   };
 
   const updateMaskPosition = () => {
-    console.log('borderwidth in assigh:', props.borderWidth);
-
     const scaleX = imageWidth.value / imageOriginalWidth.value;
     const scaleY = imageHeight.value / imageOriginalHeight.value;
     maskPosition.top = (props.info.tlwh[1] - props.borderWidth) * scaleY;
     maskPosition.left = (props.info.tlwh[0] - props.borderWidth) * scaleX;
     maskPosition.width = props.info.tlwh[2] * scaleX;
     maskPosition.height = props.info.tlwh[3] * scaleY;
-    console.log('scaleX:', scaleX, 'scaleY:', scaleY);
-    console.log(`Mask position: top=${maskPosition.top}, left=${maskPosition.left}`);
   };
 
   defineExpose({

@@ -56,17 +56,13 @@
   };
 
   const getPlayerList = async (): Promise<any[]> => {
-    console.log('Fetching player data...');
     try {
       const response = await fetch('/api/playerdata', { method: 'GET' });
-      console.log('Response received:', response);
-
       if (!response.ok) {
         throw new Error('Network response was not ok');
       }
 
       const data: PlayerData[] = await response.json();
-      console.log('Player data fetched:', data);
 
       const result = data.map((player) => ({
         playerID: player.playerId, // Ensure this matches the column dataIndex
@@ -156,11 +152,8 @@
   const Updateplayer = async (changedData: any) => {
     const playerId = changedData.playerId; // Assuming the changedData contains the playerId
     delete changedData.playerId; // Remove playerId from changedData if not needed
-    console.log('Updating player data:', changedData);
     // Construct the API URL using the playerId
     const url = `/api/playerdata/${playerId}`;
-    console.log('playerId:', playerId);
-    console.log('API URL:', url);
 
     try {
       // Send the PUT or PATCH request to update the player data
@@ -168,7 +161,6 @@
       const response = await fetch(`/api/playerdata/update/${playerId}`, { method: 'PUT' });
       // Check if the response is successful
       if (response && response.status === 200) {
-        console.log('Data successfully updated:', response.data);
         msg.success({ content: '数据已保存', key: 'saving' }); // Show success message
       } else {
         console.error('Error updating data:', response);
@@ -206,17 +198,13 @@
         changedData.player_name = record.playername; // 保留userID用于API调用
         // 删除原来的playername字段
         delete changedData.playername;
-        console.log('originalData', originalData);
-        console.log('changedData', changedData);
 
         // 修改正在编辑状态
         const pass = await record.onEdit?.(false, true);
         if (pass) {
           currentEditKeyRef.value = '';
-          console.log('update data', changedData);
 
           await Updateplayer(changedData).then((res) => {
-            console.log(res);
             msg.success({ content: '数据已保存', key: 'saving' });
           });
         }

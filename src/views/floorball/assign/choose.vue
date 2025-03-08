@@ -83,8 +83,6 @@
   async function updateAnnotation(action, assigned_track_id, role) {
     const { taskId, key } = props.info;
     const url = `/api/task/${taskId}/annotations/${key}`;
-    console.log('update url:', url);
-
     const params = {
       action: action,
       assigned_track_id: assigned_track_id,
@@ -139,7 +137,6 @@
     createMessage.success('添加成功');
     // 记录当前添加的矩形所属的 team 和 index
     lastAddedRect.value.push({ team: index });
-    console.log('lastAddedRect:', lastAddedRect);
   }
 
   function handleIgnore() {
@@ -155,15 +152,12 @@
       return;
     }
     const { team } = lastAddedRect.value[lastAddedRect.value.length - 1];
-    console.log('lastAddedRect:', lastAddedRect.value);
     // 如果有记录的矩形信息
     if (team !== null) {
       // 删除团队中对应的矩形
       teams.value[team].rectangles.pop();
       // 重新更新 lastAddedRect（删除后没有上一个矩形的信息）
       lastAddedRect.value.pop();
-    } else {
-      console.log('');
     }
     createMessage.success('返回上一个');
   }

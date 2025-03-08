@@ -53,7 +53,6 @@
   function handleStep1Next(step1Values: any) {
     current.value++;
     state.initStep2 = true;
-    console.log(step1Values);
   }
 
   function handleStepPrev() {
@@ -69,7 +68,6 @@
     current.value++;
     state.initStep2 = false;
     state.initStep3 = true;
-    console.log(step2Values);
   }
 
   function handleRedo() {
@@ -84,7 +82,6 @@
 
   const handleBorderWidth = (newBorderWidth: number) => {
     borderWidth.value = newBorderWidth;
-    console.log('borderWidth in step 0', borderWidth.value);
   };
 </script>
 
