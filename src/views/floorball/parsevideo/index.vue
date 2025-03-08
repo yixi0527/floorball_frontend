@@ -26,8 +26,15 @@
         v-if="state.initStep2"
         :task-id="taskId"
         :border-width="borderWidth"
+        @send-team-data="handleSendTeamData"
       />
-      <Step3 v-show="current === 2" @redo="handleRedo" v-if="state.initStep3" :task-id="taskId" />
+      <Step3
+        v-show="current === 2"
+        @redo="handleRedo"
+        v-if="state.initStep3"
+        :task-id="taskId"
+        :choosedTeamData="choosedTeamData"
+      />
     </div>
   </PageWrapper>
 </template>
@@ -44,6 +51,7 @@
   const current = ref(0);
   const taskId = ref('');
   const borderWidth = ref(0);
+  const choosedTeamData = ref([]);
 
   const state = reactive({
     initStep2: false,
@@ -82,6 +90,11 @@
 
   const handleBorderWidth = (newBorderWidth: number) => {
     borderWidth.value = newBorderWidth;
+  };
+
+  const handleSendTeamData = (teamData: any) => {
+    choosedTeamData.value = teamData;
+    console.log('Received team data:', teamData);
   };
 </script>
 

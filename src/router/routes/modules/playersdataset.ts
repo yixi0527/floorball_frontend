@@ -2,7 +2,6 @@ import type { AppRouteModule } from '@/router/types';
 
 import { LAYOUT } from '@/router/constant';
 
-
 const playermanagment: AppRouteModule = {
   path: '/player',
   name: 'players',
@@ -18,7 +17,7 @@ const playermanagment: AppRouteModule = {
     {
       path: '/players',
       name: 'players',
-      component: () => import('@/views/floorball/dataset/index.vue'),
+      component: () => import('@/views/floorball/dataset/playerTable.vue'),
       meta: {
         title: '队员管理',
         icon: 'simple-icons:aboutdotme',

@@ -2,6 +2,7 @@
   <div class="image-container" :style="{ position: 'relative', display: 'inline-block' }">
     <img ref="image" :src="info.imageUrl" alt="Image" @load="onImageLoad" class="image" />
     <div
+      v-if="!completed"
       class="mask"
       :style="{
         top: maskPosition.top + 'px',
@@ -25,6 +26,10 @@
     borderWidth: {
       type: Number,
       default: 0,
+    },
+    completed: {
+      type: Boolean,
+      default: false,
     },
   });
 

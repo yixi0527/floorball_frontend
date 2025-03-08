@@ -1,83 +1,99 @@
 <template>
-  <div class="w-120 m-auto step2class">
-    <div v-if="progressStatus.processing < 100">
-      <Alert message="Step 1: 自动预处理" show-icon />
-      <Descriptions :column="1" class="mt-5">
-        <Descriptions.Item label="添加边框中">
-          <Progress
-            :percent="progressStatus.addingBorders"
-            size="default"
-            :status="progressStatus.addingBorders === 100 ? 'success' : 'active'"
-            :format="(percent) => `${progressStatus.addingBorders.toFixed(2)}%`"
-            type="line"
-          />
-        </Descriptions.Item>
+  <div>
+    <div class="w-120 m-auto step2class">
+      <div v-if="progressStatus.processing < 100">
+        <Alert message="Step 1: 自动预处理" show-icon />
+        <Descriptions :column="1" class="mt-5">
+          <Descriptions.Item label="添加边框中">
+            <Progress
+              :percent="progressStatus.addingBorders"
+              size="default"
+              :status="progressStatus.addingBorders === 100 ? 'success' : 'active'"
+              :format="(percent) => `${progressStatus.addingBorders.toFixed(2)}%`"
+              type="line"
+            />
+          </Descriptions.Item>
 
-        <Descriptions.Item label="视频剪裁中">
-          <Progress
-            :percent="progressStatus.cropping"
-            size="default"
-            :status="progressStatus.cropping === 100 ? 'success' : 'active'"
-            :format="(percent) => `${progressStatus.cropping.toFixed(2)}%`"
-          />
-        </Descriptions.Item>
+          <Descriptions.Item label="视频剪裁中">
+            <Progress
+              :percent="progressStatus.cropping"
+              size="default"
+              :status="progressStatus.cropping === 100 ? 'success' : 'active'"
+              :format="(percent) => `${progressStatus.cropping.toFixed(2)}%`"
+            />
+          </Descriptions.Item>
 
-        <Descriptions.Item label="跟踪分析中">
-          <Progress
-            :percent="progressStatus.processing"
-            size="default"
-            :status="progressStatus.processing === 100 ? 'success' : 'active'"
-            :format="(percent) => `${progressStatus.processing.toFixed(2)}%`"
-            type="line"
-          />
-        </Descriptions.Item>
-      </Descriptions>
+          <Descriptions.Item label="跟踪分析中">
+            <Progress
+              :percent="progressStatus.processing"
+              size="default"
+              :status="progressStatus.processing === 100 ? 'success' : 'active'"
+              :format="(percent) => `${progressStatus.processing.toFixed(2)}%`"
+              type="line"
+            />
+          </Descriptions.Item>
+        </Descriptions>
+      </div>
     </div>
-  </div>
-  <div v-if="progressStatus.processing === 100" class="w-120 m-auto step2class">
-    <Alert message="Step 2: 半自动标注" show-icon style="width: 100%; margin-bottom: 20px" />
-    <assigntask :info="itemInfo" ref="assigntaskRef" :borderWidth="props.borderWidth" />
-    <Divider />
-    <a-row :gutter="16" style="display: flex; flex-wrap: nowrap">
-      <!-- choose 组件，占 18/24 -->
-      <a-col :span="20" style="flex: 0 0 90%">
-        <choose
-          ref="chooseRef"
-          :info="itemInfo"
-          @operation-completed="operationCompleted"
-          style="width: 100%"
-        />
-      </a-col>
+    <div v-if="progressStatus.processing === 100" class="w-120 m-auto step2class">
+      <Alert message="Step 2: 半自动标注" show-icon style="width: 100%; margin-bottom: 20px" />
+      <assigntask
+        :info="itemInfo"
+        ref="assigntaskRef"
+        :borderWidth="props.borderWidth"
+        :completed="chooseComplete"
+      />
+      <Divider />
+      <Row :gutter="16" style="display: flex; flex-wrap: nowrap">
+        <!-- choose 组件，占 18/24 -->
+        <Col :span="20" style="flex: 0 0 90%">
+          <choose
+            ref="chooseRef"
+            :info="itemInfo"
+            @operation-completed="operationCompleted"
+            style="width: 100%"
+            @send-team-ddata="handleTeamData"
+          />
+        </Col>
 
-      <!-- 按钮组，占 6/24，固定在右侧 -->
-      <a-col
-        :span="4"
-        style="
-          display: flex;
-          flex: 0 0 10%;
-          flex-direction: column;
-          align-items: flex-end;
-          justify-content: flex-start;
-          gap: 10px;
-        "
-      >
-        <a-button type="warning" @click="triggerIgnore">{{ '忽\u3000略' }}</a-button>
-        <a-button type="primary" @click="processPreviousTask">上一步</a-button>
-        <a-button type="primary" @click="customSubmitFunc" :disabled="currentTaskIndex < total_ann">
-          {{ currentTaskIndex === total_ann ? '下一步' : `${currentTaskIndex} / ${total_ann}` }}
-        </a-button>
-      </a-col>
-    </a-row>
+        <!-- 按钮组，占 6/24，固定在右侧 -->
+        <Col
+          :span="4"
+          style="
+            display: flex;
+            flex: 0 0 10%;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: flex-start;
+            gap: 10px;
+          "
+        >
+          <a-button type="warning" @click="triggerIgnore">{{ '忽\u3000略' }}</a-button>
+          <a-button type="primary" @click="processPreviousTask">上一步</a-button>
+          <a-button
+            type="primary"
+            @click="customSubmitFunc"
+            :disabled="currentTaskIndex < total_ann"
+          >
+            {{ currentTaskIndex === total_ann ? '下一步' : `${currentTaskIndex} / ${total_ann}` }}
+          </a-button>
+        </Col>
+      </Row>
+    </div>
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { Alert, Divider, Progress, Descriptions } from 'ant-design-vue';
+  import { Alert, Divider, Progress, Descriptions, Col, Row } from 'ant-design-vue';
+  import { col, row } from 'antd';
   import { ref, onMounted } from 'vue';
   import assigntask from '@/views/floorball/assign/assigntask.vue';
   import choose from '@/views/floorball/assign/choose.vue';
+  import { useMessage } from '@/hooks/web/useMessage';
 
+  const { createMessage } = useMessage();
   const chooseRef = ref(null);
+  const chooseComplete = ref(false);
 
   const triggerIgnore = () => {
     if (chooseRef.value) {
@@ -97,7 +113,7 @@
     generatingReport: true,
   });
 
-  const emit = defineEmits(['next', 'prev']);
+  const emit = defineEmits(['next', 'prev', 'send-team-data']);
   const props = defineProps({
     taskId: {
       type: String,
@@ -108,6 +124,11 @@
       default: 0,
     },
   });
+
+  const handleTeamData = (data) => {
+    console.log('handleTeamData in step 2', data);
+    emit('send-team-data', data);
+  };
 
   const getOriginalVideo = async (frame_id) => {
     // 查询任务状态
@@ -123,6 +144,10 @@
       chooseRef.value.handleDeleteRectangle();
     }
     lastEvent.value.pop();
+
+    if (chooseComplete.value) {
+      chooseComplete.value = false;
+    }
 
     // 如果不是第一个任务，则将 currentTaskIndex 减少
     if (currentTaskIndex.value > 0) {
@@ -195,6 +220,8 @@
   }
 
   const total_ann = ref(0);
+  const lastFrameId = ref(0);
+  const lastFrameDir = ref('');
 
   // 获取任务并处理
   async function afterpreprocess() {
@@ -214,7 +241,14 @@
       itemInfo.value.key = currentTaskIndex.value + 1;
       itemInfo.value.track_id = item.track_id;
       itemInfo.value.tlwh = item.tlwh;
-      itemInfo.value.imageUrl = getUrlPath(await getOriginalVideo(item.frame_id));
+      if (item.frame_id != lastFrameId.value) {
+        itemInfo.value.imageUrl = getUrlPath(await getOriginalVideo(item.frame_id));
+        lastFrameId.value = item.frame_id;
+        lastFrameDir.value = itemInfo.value.imageUrl;
+      } else {
+        itemInfo.value.imageUrl = lastFrameDir.value;
+      }
+
       itemInfo.value.targetUrl = getUrlPath(item.target_image_path);
       itemInfo.value.status = item.status;
       itemInfo.value.taskId = props.taskId;
@@ -225,6 +259,11 @@
       await waitForUserAction();
       // 操作完成后，更新任务状态
       currentTaskIndex.value += 1;
+      if (currentTaskIndex.value == total_ann.value) {
+        createMessage.success('标注完成!');
+        chooseRef.value.sendTeamData();
+        break;
+      }
     }
   }
 

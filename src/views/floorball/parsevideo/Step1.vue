@@ -7,14 +7,16 @@
         :maxNumber="1"
         @change="handleChange"
         @task-id="handleTaskId"
-        :showPreviewNumber="false"
         :accept="['mp4', 'avi', 'mov', 'mkv', 'flv', 'wmv']"
         @border-width="handleBorderWidth"
+        :emptyHidePreview="true"
+        :disabled="!buttonDisabled"
       />
       <a-button
         type="primary"
         @click="customSubmitFunc"
         style="align-items: center; justify-content: center; margin-top: 20px"
+        :disabled="buttonDisabled"
         >下一步</a-button
       >
     </div>
@@ -28,6 +30,7 @@
 <script lang="ts" setup>
   import { BasicUpload } from '@/components/Upload';
   import { Divider } from 'ant-design-vue';
+  import { defineEmits, ref } from 'vue';
 
   const emit = defineEmits(['next', 'task-id', 'borderWidth']);
 
@@ -38,10 +41,11 @@
   async function customSubmitFunc() {
     emit('next');
   }
-
+  const buttonDisabled = ref(true);
   function handleChange(fileList: any) {}
 
   function handleTaskId(ReceivedtaskId) {
+    buttonDisabled.value = false;
     emit('task-id', ReceivedtaskId);
   }
 </script>

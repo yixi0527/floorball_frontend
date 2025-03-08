@@ -6,8 +6,9 @@
         @click="openUploadModal"
         preIcon="carbon:cloud-upload"
         :disabled="disabled"
+        :style="buttonStyle"
       >
-        {{ t('component.upload.upload') }}
+        {{ buttonText }}
       </a-button>
       <Tooltip placement="bottom" v-if="showPreview">
         <template #title>
@@ -64,6 +65,13 @@
 
   defineOptions({ name: 'BasicUpload' });
 
+  const isUploaded = ref(false);
+
+  const buttonText = computed(() => (isUploaded.value ? '已上传' : '上传'));
+  const buttonStyle = computed(() =>
+    isUploaded.value ? { color: 'green', borderColor: 'green' } : {},
+  );
+
   const props = defineProps(uploadContainerProps);
 
   const emit = defineEmits([
@@ -84,6 +92,7 @@
   const [registerPreviewModal, { openModal: openPreviewModal }] = useModal();
 
   const handleTaskId = (taskId: string) => {
+    isUploaded.value = true;
     emit('taskId', taskId);
   };
 

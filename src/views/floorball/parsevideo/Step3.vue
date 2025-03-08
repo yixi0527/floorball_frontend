@@ -1,24 +1,53 @@
 <template>
-  <div class="w-150 m-auto">
-    <Result status="success" title="分析完成！" sub-title="预计三分钟内生成分析报告">
-      <template #extra>
-        <a-button type="primary" @click="emit('redo')"> 分析下一场比赛 </a-button>
-        <a-button @click="handleclick"> 下载分析报告 </a-button>
-      </template>
-    </Result>
+  <div class="container">
+    <div class="left">
+      <match :choosedTeamData="choosedTeamData" @image-selected="handleImageSelected" />
+    </div>
+  </div>
+  <div class="right">
+    <playerTable />
   </div>
 </template>
 
 <script lang="ts" setup>
-  import { Result } from 'ant-design-vue';
-  import { defineProps, defineEmits } from 'vue';
+  import { defineProps, defineEmits, onMounted } from 'vue';
+  import playerTable from '@/views/floorball/dataset/playerTable.vue';
+  import match from '@/views/floorball/match/match.vue';
 
   const props = defineProps({
     taskId: {
       type: String,
       default: '',
     },
+    choosedTeamData: {
+      type: Array,
+      default: () => [],
+    },
   });
-
+  const handleImageSelected = (trackId) => {
+    console.log('父组件接收到选中的 track_id:', trackId);
+  };
   const emit = defineEmits(['redo']);
+
+  onMounted(() => {
+    console.log('Step3 props:', props);
+    console.log('Step3 mounted');
+  });
 </script>
+
+<style scoped>
+  .container {
+    display: flex;
+    width: 100%;
+  }
+
+  .left,
+  .right {
+    flex: 1;
+    padding: 10px;
+  }
+
+  .right {
+    border-left: 1px solid #ddd;
+  }
+</style>

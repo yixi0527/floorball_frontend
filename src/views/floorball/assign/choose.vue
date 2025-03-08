@@ -56,13 +56,13 @@
 </template>
 
 <script setup>
-  import { ref } from 'vue';
+  import { ref, watch } from 'vue';
   import { Dropdown } from '@/components/Dropdown';
   import { useMessage } from '@/hooks/web/useMessage';
 
   const { createMessage } = useMessage();
-  const props = defineProps({ info: Object });
-  const emit = defineEmits(['operation-completed']);
+  const props = defineProps({ info: Object, completed: Boolean });
+  const emit = defineEmits(['operation-completed', 'send-team-data']);
 
   const teams = ref([
     { name: '红队', rectangles: [] },
@@ -162,7 +162,11 @@
     createMessage.success('返回上一个');
   }
 
-  defineExpose({ handleIgnore, handleDeleteRectangle });
+  function sendTeamData() {
+    emit('sendTeamDdata', teams.value);
+  }
+
+  defineExpose({ handleIgnore, handleDeleteRectangle, sendTeamData });
 </script>
 
 <style scoped>
