@@ -8,20 +8,40 @@ const playermanagment: AppRouteModule = {
   component: LAYOUT,
   redirect: '/players',
   meta: {
-    hideChildrenInMenu: true,
-    icon: 'simple-icons:aboutdotme',
-    title: '队员管理',
+    hideChildrenInMenu: false,
+    icon: 'ri:team-fill',
+    title: '队伍管理',
     orderNo: 0,
   },
   children: [
     {
-      path: '/players',
-      name: 'players',
+      path: '/playersList',
+      name: 'playersList',
       component: () => import('@/views/floorball/dataset/playerTable.vue'),
       meta: {
-        title: '队员管理',
-        icon: 'simple-icons:aboutdotme',
-        hideMenu: true,
+        title: '队员数据',
+        icon: 'ion:people-circle-sharp',
+        hideMenu: false,
+      },
+    },
+    {
+      path: '/taskList',
+      name: 'taskList',
+      component: () => import('@/views/floorball/dataset/taskTable.vue'),
+      meta: {
+        title: '历史竞赛',
+        icon: 'ion:trophy-sharp',
+        hideMenu: false,
+      },
+    },
+    {
+      path: '/playersHistory',
+      name: 'playersHistory',
+      component: () => import('@/views/floorball/dataset/playerTable.vue'),
+      meta: {
+        title: '球员表现',
+        icon: 'ion:accessibility-sharp',
+        hideMenu: false,
       },
     },
   ],

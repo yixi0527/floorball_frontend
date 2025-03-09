@@ -2,7 +2,6 @@ import type { AppRouteModule } from '@/router/types';
 
 import { LAYOUT } from '@/router/constant';
 
-
 const parsevideo: AppRouteModule = {
   path: '/parsevideo',
   name: 'parsevideo',
@@ -10,7 +9,7 @@ const parsevideo: AppRouteModule = {
   redirect: '/parsevideoPage',
   meta: {
     hideChildrenInMenu: true,
-    icon: 'simple-icons:aboutdotme',
+    icon: 'ion:sparkles-sharp',
     title: '智能分析',
     orderNo: 0,
   },

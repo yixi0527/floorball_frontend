@@ -85,10 +85,9 @@
 
 <script lang="ts" setup>
   import { Alert, Divider, Progress, Descriptions, Col, Row } from 'ant-design-vue';
-  import { col, row } from 'antd';
   import { ref, onMounted } from 'vue';
-  import assigntask from '@/views/floorball/assign/assigntask.vue';
-  import choose from '@/views/floorball/assign/choose.vue';
+  import Assigntask from '@/views/floorball/assign/Assigntask.vue';
+  import Choose from '@/views/floorball/assign/Choose.vue';
   import { useMessage } from '@/hooks/web/useMessage';
 
   const { createMessage } = useMessage();

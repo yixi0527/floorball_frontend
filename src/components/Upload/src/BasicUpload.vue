@@ -1,6 +1,7 @@
 <template>
   <div>
     <Space>
+      <!-- 上传按钮 -->
       <a-button
         type="primary"
         @click="openUploadModal"
@@ -10,6 +11,7 @@
       >
         {{ buttonText }}
       </a-button>
+      <!-- 预览按钮 -->
       <Tooltip placement="bottom" v-if="showPreview">
         <template #title>
           {{ t('component.upload.uploaded') }}
@@ -25,6 +27,7 @@
         </a-button>
       </Tooltip>
     </Space>
+    <!-- 上传Modal -->
     <UploadModal
       v-bind="bindValue"
       :previewFileList="fileList"
@@ -36,7 +39,7 @@
       @task-id="handleTaskId"
       @border-width="handleBorderWidth"
     />
-
+    <!-- 预览Modal -->
     <UploadPreviewModal
       :value="fileList"
       :max-number="bindValue.maxNumber"
@@ -48,6 +51,7 @@
     />
   </div>
 </template>
+
 <script lang="ts" setup>
   import { ref, watch, unref, computed, useAttrs } from 'vue';
   import { Recordable } from '@vben/types';
@@ -66,14 +70,12 @@
   defineOptions({ name: 'BasicUpload' });
 
   const isUploaded = ref(false);
-
   const buttonText = computed(() => (isUploaded.value ? '已上传' : '上传'));
   const buttonStyle = computed(() =>
     isUploaded.value ? { color: 'green', borderColor: 'green' } : {},
   );
 
   const props = defineProps(uploadContainerProps);
-
   const emit = defineEmits([
     'change',
     'delete',
@@ -85,10 +87,9 @@
 
   const attrs = useAttrs();
   const { t } = useI18n();
-  // 上传modal
+  // 上传modal注册和打开方法
   const [registerUploadModal, { openModal: openUploadModal }] = useModal();
-
-  //   预览modal
+  // 预览modal注册和打开方法
   const [registerPreviewModal, { openModal: openPreviewModal }] = useModal();
 
   const handleTaskId = (taskId: string) => {
@@ -100,11 +101,11 @@
     emit('borderWidth', borderWidth);
   };
 
-  const fileList = ref<BaseFileItem[] | any[]>([]);
+  const fileList = ref<BaseFileItem[]>([]);
 
+  // 控制预览按钮显示
   const showPreview = computed(() => {
     const { emptyHidePreview } = props;
-    if (!emptyHidePreview) return true;
     return emptyHidePreview ? fileList.value.length > 0 : true;
   });
 
@@ -113,23 +114,22 @@
     return omit(value, 'onChange');
   });
 
-  const isFirstRender = ref<boolean>(true);
+  const isFirstRender = ref(true);
 
+  // 提取文件的指定字段（默认为url）
   function getValue(valueKey = 'url') {
-    const list = (fileList.value || []).map((item: any) => {
-      return item[valueKey];
-    });
-    return list;
+    return (fileList.value || []).map((item: any) => item[valueKey]);
   }
+
+  // 根据URL列表生成文件列表
   function genFileListByUrls(urls: string[]) {
-    const list = urls.map((e) => {
-      return {
-        uid: buildUUID(),
-        url: e,
-      };
-    });
-    return list;
+    return urls.map((e) => ({
+      uid: buildUUID(),
+      url: e,
+    }));
   }
+
+  // 监听外部传入的value并更新fileList
   watch(
     () => props.value,
     (v = []) => {
@@ -140,19 +140,27 @@
         } else if (typeof v == 'string') {
           values.push(v);
         }
-        fileList.value = values.map((item) => {
-          if (item && isString(item)) {
-            return {
-              uid: buildUUID(),
-              url: item,
-            };
-          } else if (item && isObject(item)) {
-            return item;
-          } else {
-            return;
-          }
-        }) as any;
+
+        fileList.value = values
+          .map((item) => {
+            // Check if the item is a string and convert it to the expected object shape
+            if (isString(item)) {
+              return {
+                uid: buildUUID(),
+                url: item,
+              };
+            }
+
+            // Ensure that the item is of the correct shape or return undefined
+            else if (isObject(item) && 'url' in item && 'uid' in item) {
+              return item as { uid: string | number; url: string };
+            } else {
+              return undefined; // In case the item is neither a string nor the expected object
+            }
+          })
+          .filter((item): item is { uid: string | number; url: string } => item !== undefined); // Filter out undefined values
       }
+
       emit('update:value', values);
       if (!isFirstRender.value) {
         emit('change', values);
@@ -165,7 +173,7 @@
     },
   );
 
-  // 上传modal保存操作
+  // 上传Modal的文件变化处理
   function handleChange(urls: string[], valueKey: string) {
     fileList.value = [...unref(fileList), ...(genFileListByUrls(urls) || [])];
     const values = getValue(valueKey);
@@ -173,7 +181,7 @@
     emit('change', values);
   }
 
-  // 预览modal保存操作
+  // 预览Modal的文件变化处理
   function handlePreviewChange(fileItems: string[], valueKey: string) {
     fileList.value = [...(fileItems || [])];
     const values = getValue(valueKey);
@@ -181,10 +189,12 @@
     emit('change', values);
   }
 
+  // 删除文件的处理
   function handleDelete(record: Recordable<any>) {
     emit('delete', record);
   }
 
+  // 删除预览文件的处理
   function handlePreviewDelete(url: string) {
     emit('preview-delete', url);
   }

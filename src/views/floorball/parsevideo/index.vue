@@ -2,42 +2,49 @@
   <PageWrapper
     title="球场智瞳"
     contentBackground
-    content=" 基于AI的软式曲棍球智能分析系统"
+    content="基于AI的软式曲棍球智能分析系统"
     contentClass="p-4"
   >
     <div class="step-form-form">
-      <Steps :current="current">
+      <Steps :current="currentStep">
         <Steps.Step title="上传视频" />
         <Steps.Step title="分析视频" />
         <Steps.Step title="持久存储" />
       </Steps>
     </div>
-    <div class="mt-5">
+
+    <div class="step-content mt-5">
+      <!-- Step 1 -->
       <Step1
-        @next="handleStep1Next"
-        v-show="current === 0"
-        @task-id="handleTaskId"
-        @border-width="handleBorderWidth"
+        @next="onStep1Next"
+        v-show="currentStep === 0"
+        @task-id="onTaskIdChange"
+        @border-width="onBorderWidthChange"
       />
+
+      <!-- Step 2 -->
       <Step2
-        @prev="handleStepPrev"
-        @next="handleStep2Next"
-        v-show="current === 1"
-        v-if="state.initStep2"
+        @prev="onStepPrev"
+        @next="onStep2Next"
+        v-show="currentStep === 1"
+        v-if="stepsState.isStep2Initialized"
         :task-id="taskId"
         :border-width="borderWidth"
-        @send-team-data="handleSendTeamData"
+        @send-team-data="onTeamDataReceived"
       />
+
+      <!-- Step 3 -->
       <Step3
-        v-show="current === 2"
-        @redo="handleRedo"
-        v-if="state.initStep3"
+        v-show="currentStep === 2"
+        @redo="onRedo"
+        v-if="stepsState.isStep3Initialized"
         :task-id="taskId"
-        :choosedTeamData="choosedTeamData"
+        :choosedTeamData="selectedTeamData"
       />
     </div>
   </PageWrapper>
 </template>
+
 <script lang="ts" setup>
   import { ref, reactive } from 'vue';
   import Step1 from './Step1.vue';
@@ -48,64 +55,77 @@
 
   defineOptions({ name: 'FormStepPage' });
 
-  const current = ref(0);
-  const taskId = ref('');
-  const borderWidth = ref(0);
-  const choosedTeamData = ref([]);
+  // Current step index
+  const currentStep = ref(0);
 
-  const state = reactive({
-    initStep2: false,
-    initStep3: false,
+  // Task and team data
+  const taskId = ref('');
+  const selectedTeamData = ref<any[]>([]);
+
+  // Step states for conditional rendering
+  const stepsState = reactive({
+    isStep2Initialized: false,
+    isStep3Initialized: false,
   });
 
-  function handleStep1Next(step1Values: any) {
-    current.value++;
-    state.initStep2 = true;
+  // Border width for styling
+  const borderWidth = ref(0);
+
+  // Step 1 next button handler
+  function onStep1Next() {
+    currentStep.value++;
+    stepsState.isStep2Initialized = true;
   }
 
-  function handleStepPrev() {
-    current.value--;
-    if (current.value === 0) {
-      state.initStep2 = false;
-    } else if (current.value === 1) {
-      state.initStep3 = false;
+  // Previous step button handler
+  function onStepPrev() {
+    currentStep.value--;
+    if (currentStep.value === 0) {
+      stepsState.isStep2Initialized = false;
+    } else if (currentStep.value === 1) {
+      stepsState.isStep3Initialized = false;
     }
   }
 
-  function handleStep2Next(step2Values: any) {
-    current.value++;
-    state.initStep2 = false;
-    state.initStep3 = true;
+  // Step 2 next button handler
+  function onStep2Next() {
+    currentStep.value++;
+    stepsState.isStep2Initialized = false;
+    stepsState.isStep3Initialized = true;
   }
 
-  function handleRedo() {
-    current.value = 0;
-    state.initStep2 = false;
-    state.initStep3 = false;
+  // Redo button handler
+  function onRedo() {
+    currentStep.value = 0;
+    stepsState.isStep2Initialized = false;
+    stepsState.isStep3Initialized = false;
   }
 
-  function handleTaskId(newTaskId) {
+  // Task ID change handler
+  function onTaskIdChange(newTaskId: string) {
     taskId.value = newTaskId;
   }
 
-  const handleBorderWidth = (newBorderWidth: number) => {
+  // Border width change handler
+  const onBorderWidthChange = (newBorderWidth: number) => {
     borderWidth.value = newBorderWidth;
   };
 
-  const handleSendTeamData = (teamData: any) => {
-    choosedTeamData.value = teamData;
+  // Team data received handler
+  const onTeamDataReceived = (teamData: any) => {
+    selectedTeamData.value = teamData;
     console.log('Received team data:', teamData);
   };
 </script>
 
 <style lang="less" scoped>
-  .step-form-content {
-    padding: 24px;
-    background-color: @component-background;
-  }
-
   .step-form-form {
     width: 750px;
     margin: 0 auto;
+  }
+
+  .step-content {
+    padding: 24px;
+    background-color: @component-background;
   }
 </style>
