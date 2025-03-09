@@ -11,9 +11,11 @@
       <div
         v-for="rectangle in selectedRectangles"
         :key="rectangle.track_id"
-        @click="selectImage(rectangle.track_id)"
+        @click="selectImage(rectangle)"
         class="cursor-pointer p-2 border rounded-lg transition duration-200 transform hover:scale-105"
-        :class="{ 'border-blue-500 shadow-lg': selectedTrackId === rectangle.track_id }"
+        :class="{
+          'border-blue-500 shadow-lg': selectedTrackId?.track_id === rectangle.track_id,
+        }"
       >
         <div
           class="w-full h-36 bg-gray-200 flex justify-center items-center rounded-md overflow-hidden"
@@ -42,10 +44,10 @@
     return props.choosedTeamData.find((team) => team.name === selectedTeam.value)?.rectangles || [];
   });
 
-  const selectImage = (track_id) => {
-    selectedTrackId.value = track_id;
-    console.log('子组件选中的 track_id:', track_id);
-    emit('imageSelected', track_id); // 触发事件，传递选中的 track_id 给父组件
+  const selectImage = (rectangle) => {
+    selectedTrackId.value = rectangle;
+    console.log('子组件选中的 rectangle:', rectangle);
+    emit('imageSelected', rectangle); // 触发事件，传递选中的 track_id 给父组件
   };
 </script>
 

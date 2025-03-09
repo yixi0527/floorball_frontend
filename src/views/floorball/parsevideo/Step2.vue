@@ -262,6 +262,7 @@
       if (currentTaskIndex.value == total_ann.value) {
         createMessage.success('标注完成!');
         chooseRef.value.sendTeamData();
+        chooseComplete.value = true;
         break;
       }
     }

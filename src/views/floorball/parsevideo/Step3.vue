@@ -6,13 +6,23 @@
         @image-selected="handleImageSelected"
         ref="matchComponent"
       />
-      <a-button primary @click="logSelection"> 确认选择 </a-button>
+      <!-- 居中 -->
+      <div :style="{ display: 'flex', justifyContent: 'center', marginTop: '20px' }">
+        <!-- Confirm Selection Button -->
+        <a-button type="primary" @click="logSelection" :style="{ margin: '5px' }"
+          >确认选择</a-button
+        >
+        <!-- Complete Assignment Button -->
+        <a-button @click="completeAssociate" :style="{ margin: '5px' }">分配完成</a-button>
+      </div>
     </div>
     <div class="box">
       <playerTable
         :columns="customColumns"
+        :matchId="matchId"
         @player-selected="handlePlayerSelected"
         ref="tableRef"
+        :taskId="props.taskId"
       />
     </div>
   </div>
@@ -60,9 +70,9 @@
       default: () => [],
     },
   });
-  const handleImageSelected = (trackId) => {
-    console.log('父组件接收到选中的 track_id:', trackId);
-    matchId.value = trackId;
+  const handleImageSelected = (rectangle) => {
+    console.log('父组件接收到选中的 track_id:', rectangle);
+    matchId.value = rectangle;
   };
 
   const handlePlayerSelected = (id) => {
@@ -91,13 +101,21 @@
       createMessage.error('数据库中最多只能选择一个球员');
       return;
     }
-    matchRelatedData(matchId.value, playerId.value);
+    matchRelatedData(matchId.value.track_id, playerId.value);
 
     createMessage.success('配对成功');
     console.log('选中的 Match ID:', matchId.value, '选中的 Player ID:', playerId.value);
   };
 
   const emit = defineEmits(['redo']);
+
+  async function completeAssociate() {
+    await fetch(`/api/task/${props.taskId}/complete_association`, {
+      method: 'POST',
+    });
+    createMessage.success('分配完成');
+    return;
+  }
 
   onMounted(() => {
     console.log('Step3 props:', props);

@@ -18,7 +18,13 @@
         <div style="margin-top: 8px">{{ t('component.upload.upload') }}</div>
       </div>
     </Upload>
-    <Modal :open="previewOpen" :title="previewTitle" :footer="null" @cancel="handleCancel">
+    <Modal
+      :open="previewOpen"
+      :title="previewTitle"
+      :footer="null"
+      @cancel="handleCancel"
+      @confirm="handleCancel"
+    >
       <img alt="" style="width: 100%" :src="previewImage" />
     </Modal>
   </div>
@@ -31,18 +37,17 @@
   import { Modal, Upload } from 'ant-design-vue';
   import { UploadRequestOption } from 'ant-design-vue/lib/vc-upload/interface';
   import { useMessage } from '@/hooks/web/useMessage';
-  import { isArray, isFunction, isObject, isString } from '@/utils/is';
-  import { warn } from '@/utils/log';
+  import { isArray, isObject, isString } from '@/utils/is';
   import { useI18n } from '@/hooks/web/useI18n';
   import { useUploadType } from '../hooks/useUpload';
   import { uploadContainerProps } from '../props';
   import { checkFileType } from '../helper';
   import { UploadResultStatus } from '@/components/Upload/src/types/typing';
-  import { get, omit } from 'lodash-es';
+  import { omit } from 'lodash-es';
 
   defineOptions({ name: 'ImageUpload' });
 
-  const emit = defineEmits(['change', 'update:value', 'delete']);
+  const emit = defineEmits(['change', 'update:value', 'delete', 'uploadImg']);
   const props = defineProps({
     ...omit(uploadContainerProps, ['previewColumns', 'beforePreviewData']),
   });
@@ -64,7 +69,6 @@
   const isLtMsg = ref<boolean>(true);
   const isActMsg = ref<boolean>(true);
   const isFirstRender = ref<boolean>(true);
-
   watch(
     () => props.value,
     (v) => {
@@ -153,47 +157,21 @@
       // 防止弹出多个错误提示
       setTimeout(() => (isActMsg.value = true), 1000);
     }
-    const isLt = maxSize === 0? false : file.size / 1024 / 1024 > maxSize;
+    const isLt = maxSize === 0 ? false : file.size / 1024 / 1024 > maxSize;
     if (isLt) {
       createMessage.error(t('component.upload.maxSizeMultiple', [maxSize]));
       isLtMsg.value = false;
       // 防止弹出多个错误提示
       setTimeout(() => (isLtMsg.value = true), 1000);
     }
-    return (isAct && !isLt) || Upload.LIST_IGNORE;
+    emit('change', file);
+    return false;
+    // return (isAct && !isLt) || Upload.LIST_IGNORE;
   };
-
-  async function customRequest(info: UploadRequestOption<any>) {
-    const { api, uploadParams = {}, name, filename, resultField } = props;
-    if (!api || !isFunction(api)) {
-      return warn('upload api must exist and be a function');
-    }
-    try {
-      const res = await api?.({
-        data: {
-          ...uploadParams,
-        },
-        file: info.file,
-        name: name,
-        filename: filename,
-      });
-      if (props.resultField) {
-        let result = get(res, resultField);
-        info.onSuccess!(result);
-      } else {
-        // 不传入 resultField 的情况
-        info.onSuccess!(res.data);
-      }
-      const value = getValue();
-      isInnerOperate.value = true;
-      emit('update:value', value);
-      emit('change', value);
-    } catch (e: any) {
-      console.log(e);
-      info.onError!(e);
-    }
+  function customRequest(item: UploadRequestOption) {
+    console.log('item', item);
+    return false;
   }
-
   function getValue() {
     const list = (fileList.value || [])
       .filter((item) => item?.status === UploadResultStatus.DONE)

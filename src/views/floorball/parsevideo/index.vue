@@ -9,7 +9,7 @@
       <Steps :current="current">
         <Steps.Step title="上传视频" />
         <Steps.Step title="分析视频" />
-        <Steps.Step title="查看报告" />
+        <Steps.Step title="持久存储" />
       </Steps>
     </div>
     <div class="mt-5">

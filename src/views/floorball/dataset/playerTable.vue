@@ -6,6 +6,11 @@
           <TableAction :actions="createActions(record)" />
         </template>
       </template>
+      <template #toolbar>
+        <a-button type="primary" @click="handleCreatePrompt"> 新增队员 </a-button>
+        <Modal4 @register="register4" @success="handleSuccess" />
+        <a-button type="warning" @click="deletePlayer"> 删除选中数据 </a-button>
+      </template>
     </BasicTable>
   </div>
 </template>
@@ -22,11 +27,60 @@
     EditRecordRow,
     FormProps,
   } from '@/components/Table';
-  import { useMessage } from '@/hooks/web/useMessage';
   import { cardList } from './data';
   import defaultImage from '@/assets/images/defaultPlayerPhoto.jpg';
+  import { useModal } from '@/components/Modal';
+  import Modal4 from './Modal4.vue';
+  import { useMessage } from '@/hooks/web/useMessage';
+  // 导入msg用法
+  import { message as msg } from 'ant-design-vue';
 
-  const props = defineProps<{ columns?: BasicColumn[] }>();
+  const { createMessage } = useMessage();
+
+  function deletePlayer() {
+    const selectedRows = getSelectRows();
+    clearSelectedRowKeys();
+    console.log('Delete Player', selectedRows);
+    if (!selectedRows || selectedRows.length === 0) {
+      msg.info('请先选择要删除的行');
+      return;
+    }
+    console.log('Delete Player', selectedRows);
+    // 删除选中数据
+    selectedRows.forEach((row) => {
+      fetch(`/api/playerdata/${row.playerId}`, {
+        method: 'DELETE',
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error(`删除失败: ${response.statusText}`);
+          }
+          return response.json();
+        })
+        .then((data) => {
+          console.log(`删除成功:`, data);
+          msg.success(`删除成功: ${row.playerName}`);
+        })
+        .catch((error) => {
+          console.error(`删除失败:`, error);
+          msg.error(`删除失败: ${row.playerName}`);
+        });
+    });
+    data.value = data.value.filter((item) => !selectedRows.includes(item));
+    myreload();
+  }
+  const [register4, { openModal: openModal4 }] = useModal();
+
+  function handleCreatePrompt() {
+    openModal4(true, {
+      playerName: props.matchId.track_id,
+      playerRole: props.matchId.role,
+      playerPhoto: props.matchId.imgPath,
+      track_id: props.matchId.track_id,
+    });
+  }
+
+  const props = defineProps<{ columns?: BasicColumn[]; matchId; taskId }>();
 
   const defaultColumns: BasicColumn[] = [
     { title: 'ID', dataIndex: 'playerId', width: 60, sorter: true },
@@ -51,26 +105,57 @@
 
   const columns = computed(() => props.columns || defaultColumns);
   const data = ref<any[]>([]);
-  const { createMessage: msg } = useMessage();
   const currentEditKeyRef = ref('');
 
-  const [registerTable, methods] = useTable({
-    title: '队伍管理',
-    titleHelpMessage: ['队伍管理'],
-    columns: columns.value,
-    showIndexColumn: false,
-    showTableSetting: true,
-    tableSetting: { fullScreen: true },
-    actionColumn: { width: 80, title: '操作', dataIndex: 'action' },
-    rowSelection: { type: 'checkbox' },
-    showSelectionBar: true,
-    useSearchForm: true,
-    formConfig: getFormConfig(),
-  });
+  const [registerTable, { reload, setTableData, getSelectRows, setLoading, clearSelectedRowKeys }] =
+    useTable({
+      title: '队伍管理',
+      titleHelpMessage: ['队伍管理'],
+      columns: columns.value,
+      showIndexColumn: false,
+      showTableSetting: true,
+      tableSetting: { fullScreen: true },
+      actionColumn: { width: 80, title: '操作', dataIndex: 'action' },
+      rowSelection: { type: 'checkbox' },
+      showSelectionBar: true,
+      useSearchForm: true,
+      formConfig: getFormConfig(),
+    });
+
+  function getUrlPath(imageUrl: string): string {
+    const index = imageUrl.indexOf('/playerdatabase');
+    if (index !== -1) {
+      return ('http://localhost:8001' + imageUrl.substring(index)).replace(/\\/g, '/'); // +8 是因为 '/results' 的长度为 8
+    }
+    return ''; // 如果没有找到 '/results'，返回空字符串
+  }
+
+  async function myreload() {
+    console.log('myreload');
+    setLoading(true);
+    // 重新加载数据
+    const response = await fetch('/api/playerdata');
+    const data = await response.json();
+    // 格式化数据
+    const result = data.map((player) => ({
+      playerId: player.playerId,
+      playerName: player.playerName,
+      playerPhoto: getUrlPath(player.playerPhoto),
+      playerRole: player.playerRole,
+      contests: player.videoUuids ? JSON.parse(player.videoUuids).length : 0,
+    }));
+    // 更新数据
+    setLoading(false);
+    setTableData(result);
+  }
+
+  async function handleSuccess() {
+    myreload();
+  }
 
   onMounted(async () => {
     data.value = cardList;
-    methods.setTableData(data.value);
+    setTableData(data.value);
   });
 
   function getFormConfig(): Partial<FormProps> {
@@ -97,7 +182,7 @@
   }
 
   async function handleSave(record: EditRecordRow) {
-    msg.loading({ content: '正在保存...', duration: 0, key: 'saving' });
+    // msg.loading({ content: '正在保存...', duration: 0, key: 'saving' });
     const valid = await record.onValid?.();
     if (valid) {
       try {
@@ -119,17 +204,32 @@
         }
 
         changedData.userID = record.userID; // 保留userID用于API调用
+        console.log('update data', changedData);
+
+        const formData = new FormData();
+        if (changedData.playerName) {
+          formData.append('player_name', changedData.playerName);
+        }
+        if (changedData.player_role) {
+          formData.append('player_role', changedData.playerRole);
+        }
+        if (changedData.video_uuids) {
+          formData.append('video_uuids', changedData.videoUuids);
+        }
+        if (changedData.player_photo) {
+          formData.append('player_photo', changedData.playerPhoto);
+        }
 
         // 修改正在编辑状态
         const pass = await record.onEdit?.(false, true);
         if (pass) {
           currentEditKeyRef.value = '';
           console.log('update data', changedData);
-          // 提交服务器保存
-          await AdminUpdateUserInfoApi(changedData).then((res) => {
-            console.log(res);
-            msg.success({ content: '数据已保存', key: 'saving' });
+          await fetch(`/api/playerdata/${record.playerId}`, {
+            method: 'PUT',
+            body: formData,
           });
+          msg.success({ content: '保存成功', key: 'saving' });
         }
       } catch (error) {
         msg.error({ content: '保存失败', key: 'saving' });
@@ -148,7 +248,10 @@
         },
       ];
     }
-    return [{ label: '保存', onClick: () => handleSave(record) }, { label: '取消' }];
+    return [
+      { label: '保存', onClick: () => handleSave(record) },
+      { label: '取消', onClick: () => record.onEdit?.(false) },
+    ];
   }
 
   function onEditChange({ column, value, record }) {
@@ -156,7 +259,7 @@
   }
 
   function getSelectedRowsPlayerId() {
-    const selectedRows = methods.getSelectRows();
+    const selectedRows = getSelectRows();
     if (!selectedRows || selectedRows.length === 0) {
       console.log('No rows selected');
       return 0;
