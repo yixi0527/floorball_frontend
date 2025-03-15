@@ -1,8 +1,7 @@
 <template>
   <div class="frame-selector">
-    <!-- 图片区域 -->
     <div class="image-container" :style="imageWrapperStyle">
-      <img :src="thumbUrl" class="image" @load="onImageLoad" />
+      <img :src="thumbUrl" class="image" @load="onImageLoad" ref="image" />
       <div class="annotation-box" :style="annotationBoxStyle">
         <div
           v-for="(point, index) in points"
@@ -13,7 +12,6 @@
         ></div>
       </div>
     </div>
-    <!-- 控制面板 -->
     <div class="control-panel">
       <label>边框宽度 (px): </label>
       <input type="number" v-model.number="borderWidth" min="0" @input="updateWrapperStyle" />
@@ -22,11 +20,9 @@
 </template>
 
 <script setup>
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { ref, computed, onMounted, watch } from 'vue';
 
   const emit = defineEmits(['update:borderWidth', 'update:points']);
-
-  const image = (ref < HTMLImageElement) | (null > null); // 类型声明为 HTMLImageElement 或 null
 
   const props = defineProps({
     thumbUrl: {
@@ -34,7 +30,7 @@
       required: true,
     },
   });
-
+  const image = ref(null);
   const borderWidth = ref(0);
   const imageSize = ref({ width: 0, height: 0 });
   const points = ref([
@@ -47,11 +43,21 @@
   const dragIndex = ref(-1);
   const offsetX = ref(0);
   const offsetY = ref(0);
+  const scale = ref(1);
+  const displayedImgRect = ref({ width: 0, height: 0, left: 0, top: 0 });
+
+  const updateScale = (img) => {
+    const containerWidth = img.parentElement.clientWidth - 2 * borderWidth.value * scale.value;
+    scale.value = containerWidth / imageWidth.value;
+    console.log('containerWidth:', containerWidth);
+    console.log('imageSize:', imageSize.value.width);
+    console.log('scale:', scale.value);
+  };
 
   // 计算属性
   const imageWrapperStyle = computed(() => ({
     position: 'relative',
-    padding: `${borderWidth.value}px`,
+    padding: `${borderWidth.value * scale.value}px`,
     border: '2px solid #808080', // Border color
     display: 'inline-block',
   }));
@@ -89,6 +95,8 @@
     const img = event.target;
     imageWidth.value = img.naturalWidth;
     imageHeight.value = img.naturalHeight;
+    updateScale(img);
+    console.log(`Image width: ${imageWidth.value}, Image height: ${imageHeight.value}`);
   };
 
   const startDrag = (index, event) => {
@@ -129,6 +137,10 @@
 
   // 计算实际坐标
   const getActualCoordinates = () => {
+    const wrapper = document.querySelector('.image-container');
+    const rect = wrapper.getBoundingClientRect();
+    const scaleX = rect.width / imageSize.value.width;
+    const scaleY = rect.height / imageSize.value.height;
     return points.value.map((point) => ({
       x: Math.round((point.x / 100) * (imageWidth.value + 2 * borderWidth.value)),
       y: Math.round((point.y / 100) * (imageHeight.value + 2 * borderWidth.value)),
