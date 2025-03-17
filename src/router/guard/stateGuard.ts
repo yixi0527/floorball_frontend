@@ -20,5 +20,16 @@ export function createStateGuard(router: Router) {
       userStore.resetState();
       removeTabChangeListener();
     }
+    // if (to.path === '/parsevideoPage') {
+    //   const tabStore = useMultipleTabStore();
+    //   const userStore = useUserStore();
+    //   const appStore = useAppStore();
+    //   const permissionStore = usePermissionStore();
+    //   appStore.resetAllState();
+    //   permissionStore.resetState();
+    //   tabStore.resetState();
+    //   userStore.resetState();
+    //   removeTabChangeListener();
+    // }
   });
 }

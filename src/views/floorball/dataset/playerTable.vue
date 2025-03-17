@@ -17,7 +17,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, onMounted, defineProps, h, defineExpose } from 'vue';
+  import { ref, computed, onMounted, defineProps, h } from 'vue';
   import { cloneDeep } from 'lodash-es';
   import {
     BasicTable,
@@ -32,9 +32,20 @@
   import { useMessage } from '@/hooks/web/useMessage';
   import { message as antdMessage } from 'ant-design-vue';
   import PlayerModal from './Modal4.vue';
-  import { cardList } from './data';
   import defaultImage from '@/assets/images/defaultPlayerPhoto.jpg';
+  import { useRouter } from 'vue-router';
 
+  const router = useRouter();
+
+  // 跳转到特定运动员的仪表板
+  function navigateToPlayerDashboard(playerId) {
+    router.push({
+      name: 'PlayerDashboard',
+      params: {
+        playerId,
+      },
+    });
+  }
   // 类型声明
   type PlayerRecord = EditRecordRow & {
     playerId: string;
@@ -47,7 +58,7 @@
   // 属性定义
   const props = defineProps<{
     columns?: BasicColumn[];
-    matchId?: { track_id: string; role: string; imgPath: string };
+    matchId?: { track_id: string; role: string; imgPath: string; playerName: string };
     taskId?: string;
   }>();
 
@@ -78,7 +89,7 @@
         customRender: ({ record }) =>
           h('img', {
             src: getPlayerImageUrl(record.playerPhoto),
-            style: 'width: 50px; height: 50px; border-radius: 5px; object-fit: cover;',
+            style: 'width: 50px; height: 50px; border-radius: 5px; object-fit: contain;',
           }),
       },
       { title: '名称', dataIndex: 'playerName', width: 150, editRow: true, sorter: true },
@@ -109,7 +120,6 @@
 
   /* ---------- 数据操作 ---------- */
   async function initializeTableData() {
-    playersData.value = cardList;
     await reloadPlayerData();
   }
 
@@ -135,8 +145,6 @@
   }
 
   function getPlayerImageUrl(imagePath?: string): string {
-    console.log('imagePath:', imagePath);
-    console.log(imagePath?.trim());
     if (!imagePath?.includes('playerdatabase')) return defaultImage;
     const apiPath = imagePath.substring(imagePath.indexOf('/playerdatabase'));
     return `http://localhost:8001${apiPath.replace(/\\/g, '/')}`;
@@ -146,7 +154,7 @@
   function handleCreatePlayer() {
     const modalParams = props.matchId
       ? {
-          playerName: props.matchId.track_id,
+          playerName: props.matchId.playerName?.trim() || '新增队员',
           playerRole: props.matchId.role,
           playerPhoto: props.matchId.imgPath,
           track_id: props.matchId.track_id,
@@ -186,10 +194,10 @@
   }
 
   /* ---------- 表格行操作 ---------- */
-  function getTableActions(record: PlayerRecord): ActionItem[] {
+  function getTableActions(record: TaskRecord): ActionItem[] {
     return record.editable
       ? [
-          { label: '保存', onClick: () => handleSavePlayer(record) },
+          { label: '保存', onClick: () => handleSaveTask(record) },
           { label: '取消', onClick: () => record.onEdit?.(false) },
         ]
       : [
@@ -197,6 +205,10 @@
             label: '编辑',
             disabled: !!currentEditingKey.value && currentEditingKey.value !== record.key,
             onClick: () => startEditing(record),
+          },
+          {
+            label: '查看球员报告',
+            onClick: () => navigateToPlayerDashboard(record.playerId),
           },
         ];
   }

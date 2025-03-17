@@ -124,7 +124,7 @@ const setting: ProjectConfig = {
 
   // Multi-label
   multiTabsSetting: {
-    cache: false,
+    cache: true,
     // Turn on
     show: true,
     // Is it possible to drag and drop sorting tabs
@@ -166,7 +166,7 @@ const setting: ProjectConfig = {
   showBreadCrumb: true,
 
   // Whether to show the breadcrumb icon
-  showBreadCrumbIcon: false,
+  showBreadCrumbIcon: true,
 
   // Use error-handler-plugin
   useErrorHandle: false,

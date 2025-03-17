@@ -1,41 +1,39 @@
 <template>
   <div>
     <div class="w-120 m-auto step2class">
-      <div v-if="progressStatus.processing < 100">
-        <Alert message="Step 1: 自动预处理" show-icon />
-        <Descriptions :column="1" class="mt-5">
-          <Descriptions.Item label="添加边框中">
-            <Progress
-              :percent="progressStatus.addingBorders"
-              size="default"
-              :status="progressStatus.addingBorders === 100 ? 'success' : 'active'"
-              :format="(percent) => `${progressStatus.addingBorders.toFixed(2)}%`"
-              type="line"
-            />
-          </Descriptions.Item>
+      <!-- <Alert message="Step 1: 自动预处理" show-icon /> -->
+      <Descriptions :column="1" class="mt-5 w-120 m-auto">
+        <Descriptions.Item label="添加边框中">
+          <Progress
+            :percent="progressStatus.addingBorders"
+            size="default"
+            :status="progressStatus.addingBorders === 100 ? 'success' : 'active'"
+            :format="(percent) => `${progressStatus.addingBorders.toFixed(2)}%`"
+            type="line"
+          />
+        </Descriptions.Item>
 
-          <Descriptions.Item label="视频剪裁中">
-            <Progress
-              :percent="progressStatus.cropping"
-              size="default"
-              :status="progressStatus.cropping === 100 ? 'success' : 'active'"
-              :format="(percent) => `${progressStatus.cropping.toFixed(2)}%`"
-            />
-          </Descriptions.Item>
+        <Descriptions.Item label="视频剪裁中">
+          <Progress
+            :percent="progressStatus.cropping"
+            size="default"
+            :status="progressStatus.cropping === 100 ? 'success' : 'active'"
+            :format="(percent) => `${progressStatus.cropping.toFixed(2)}%`"
+          />
+        </Descriptions.Item>
 
-          <Descriptions.Item label="跟踪分析中">
-            <Progress
-              :percent="progressStatus.processing"
-              size="default"
-              :status="progressStatus.processing === 100 ? 'success' : 'active'"
-              :format="(percent) => `${progressStatus.processing.toFixed(2)}%`"
-              type="line"
-            />
-          </Descriptions.Item>
-        </Descriptions>
-      </div>
+        <Descriptions.Item label="跟踪分析中">
+          <Progress
+            :percent="progressStatus.processing"
+            size="default"
+            :status="progressStatus.processing === 100 ? 'success' : 'active'"
+            :format="(percent) => `${progressStatus.processing.toFixed(2)}%`"
+            type="line"
+          />
+        </Descriptions.Item>
+      </Descriptions>
     </div>
-    <div v-if="progressStatus.processing === 100" class="w-120 m-auto step2class">
+    <!-- <div v-if="progressStatus.processing === 100" class="w-120 m-auto step2class">
       <Alert message="Step 2: 半自动标注" show-icon style="width: 100%; margin-bottom: 20px" />
       <assigntask
         :info="itemInfo"
@@ -45,18 +43,15 @@
       />
       <Divider />
       <Row :gutter="16" style="display: flex; flex-wrap: nowrap">
-        <!-- choose 组件，占 18/24 -->
         <Col :span="20" style="flex: 0 0 90%">
           <choose
             ref="chooseRef"
             :info="itemInfo"
             @operation-completed="operationCompleted"
             style="width: 100%"
-            @send-team-ddata="handleTeamData"
+            @send-team-data="handleTeamData"
           />
         </Col>
-
-        <!-- 按钮组，占 6/24，固定在右侧 -->
         <Col
           :span="4"
           style="
@@ -79,20 +74,53 @@
           </a-button>
         </Col>
       </Row>
-    </div>
+    </div> -->
   </div>
 </template>
 
 <script lang="ts" setup>
   import { Alert, Divider, Progress, Descriptions, Col, Row } from 'ant-design-vue';
   import { ref, onMounted } from 'vue';
-  import Assigntask from '@/views/floorball/assign/Assigntask.vue';
-  import Choose from '@/views/floorball/assign/Choose.vue';
+  // import Assigntask from '@/views/floorball/assign/Assigntask.vue';
+  // import Choose from '@/views/floorball/assign/Choose.vue';
   import { useMessage } from '@/hooks/web/useMessage';
 
   const { createMessage } = useMessage();
   const chooseRef = ref(null);
   const chooseComplete = ref(false);
+
+  // Function to smoothly update progress bar value
+  function updateProgressBar(
+    progressType: 'addingBorders' | 'cropping' | 'processing',
+    targetValue: number,
+  ) {
+    const currentValue = progressStatus.value[progressType];
+    const increment = targetValue > currentValue ? 1 : -1; // Determine the direction of progress
+
+    const interval = setInterval(() => {
+      progressStatus.value[progressType] += increment;
+
+      if (progressStatus.value[progressType] > targetValue) {
+        progressStatus.value[progressType] = targetValue; // Ensure we don't overshoot
+        clearInterval(interval);
+      }
+    }, 50); // Update progress every 50 ms for a smooth transition
+  }
+
+  async function autoUpdateAnnotation(taskId, key) {
+    const url = `/api/task/${taskId}/annotations/${key}`;
+    try {
+      await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json', // 指定 JSON 类型
+        },
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+    console.log('autoUpdateAnnotation', taskId, key);
+  }
 
   const triggerIgnore = () => {
     if (chooseRef.value) {
@@ -267,6 +295,19 @@
     }
   }
 
+  type Annotation = {
+    track_id: number;
+    role_predict: string;
+  };
+
+  const trackIdtoRole = ref({});
+
+  async function skipAnno() {
+    console.log('skipAnno');
+    const data = await getAllTasks(); // 获取任务列表
+    customSubmitFunc();
+  }
+
   // 定义等待用户操作的函数，每次调用都会返回一个新的 Promise
   // 每次调用时返回一个新的 Promise，并将其 resolve 函数保存到数组中
   function waitForUserAction() {
@@ -302,19 +343,22 @@
         progressStatus.value.playerReport = 100;
         progressStatus.value.generatingReport = false;
         clearInterval(interval);
-        afterpreprocess();
+        // afterpreprocess();
+        skipAnno();
       } else {
         switch (response.status) {
           case 'Adding borders to frames':
-            progressStatus.value.addingBorders = response.progress;
+            updateProgressBar('addingBorders', response.progress);
             break;
           case 'cropping':
             progressStatus.value.addingBorders = 100;
-            progressStatus.value.cropping = response.progress;
+            // progressStatus.value.cropping = response.progress;
+            updateProgressBar('cropping', response.progress);
             break;
           case 'processing':
-            progressStatus.value.cropping = 100;
-            progressStatus.value.processing = response.progress;
+            // progressStatus.value.cropping = 100;
+            // progressStatus.value.processing = response.progress;
+            updateProgressBar('processing', response.progress);
             break;
           default:
             progressStatus.value.processing = 100;

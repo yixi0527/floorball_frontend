@@ -1,9 +1,9 @@
 <template>
-  <div class="p-4">
+  <div class="p-4" v-if="dataLoaded">
     <label for="teamSelect" class="font-bold">选择队伍:</label>
     <select id="teamSelect" v-model="selectedTeam" class="border p-2 ml-2 rounded">
-      <option v-for="team in choosedTeamData" :key="team.name" :value="team.name">
-        {{ team.name }}
+      <option v-for="team in props.data" :key="team.name" :value="team.name">
+        {{ team.name === 'Red Team' ? '红队' : team.name === 'Blue Team' ? '蓝队' : '教练' }}
       </option>
     </select>
 
@@ -21,33 +21,49 @@
           class="w-full h-36 bg-gray-200 flex justify-center items-center rounded-md overflow-hidden"
         >
           <img :src="rectangle.imgPath" alt="Player Image" class="w-full h-full object-contain" />
+          <div class="absolute bottom-0 right-0 p-1 bg-black text-white text-xs rounded-bl-md">
+            {{ rectangle.playerName || '其他' }}
+          </div>
         </div>
-        <!-- <p class="text-center mt-2 text-gray-700 font-medium">ID: {{ rectangle.track_id }}</p> -->
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-  import { ref, computed, defineProps, defineEmits } from 'vue';
+  import { ref, computed, defineProps, defineEmits, watch } from 'vue';
 
   const props = defineProps({
-    choosedTeamData: Array, // 由父组件传入
+    data: Array, // 由父组件传入
   });
 
   const emit = defineEmits(['imageSelected']);
 
-  const selectedTeam = ref(props.choosedTeamData[0]?.name || '');
+  const dataLoaded = ref(false);
+  const selectedTeam = ref('');
   const selectedTrackId = ref(null);
 
+  // 监听 props.data 确保数据加载后再初始化组件
+  watch(
+    () => props.data,
+    (newData) => {
+      if (newData && newData.length > 0) {
+        selectedTeam.value = newData[0]?.name || '';
+        dataLoaded.value = true;
+        console.log('match组件接收到的 data :', newData);
+      }
+    },
+    { immediate: true }, // 确保初始值也被检测
+  );
+
   const selectedRectangles = computed(() => {
-    return props.choosedTeamData.find((team) => team.name === selectedTeam.value)?.rectangles || [];
+    return props.data.find((team) => team.name === selectedTeam.value)?.rectangles || [];
   });
 
   const selectImage = (rectangle) => {
     selectedTrackId.value = rectangle;
     console.log('子组件选中的 rectangle:', rectangle);
-    emit('imageSelected', rectangle); // 触发事件，传递选中的 track_id 给父组件
+    emit('imageSelected', rectangle);
   };
 </script>
 

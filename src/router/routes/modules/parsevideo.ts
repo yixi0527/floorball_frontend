@@ -10,8 +10,9 @@ const parsevideo: AppRouteModule = {
   meta: {
     hideChildrenInMenu: true,
     icon: 'ion:sparkles-sharp',
-    title: '智能分析',
+    title: '视频分析',
     orderNo: 0,
+    ignoreAuth: true,
   },
   children: [
     {
@@ -19,9 +20,10 @@ const parsevideo: AppRouteModule = {
       name: 'parsevideoPage',
       component: () => import('@/views/floorball/parsevideo/index.vue'),
       meta: {
-        title: '智能分析',
+        title: '视频分析',
         icon: 'simple-icons:aboutdotme',
         hideMenu: true,
+        ignoreAuth: true,
       },
     },
   ],

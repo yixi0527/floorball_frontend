@@ -9,7 +9,8 @@
       <Steps :current="currentStep">
         <Steps.Step title="上传视频" />
         <Steps.Step title="分析视频" />
-        <Steps.Step title="持久存储" />
+        <Steps.Step title="人工矫正" />
+        <Steps.Step title="下载报告" />
       </Steps>
     </div>
 
@@ -37,10 +38,14 @@
       <Step3
         v-show="currentStep === 2"
         @redo="onRedo"
+        @next="onStep3Next"
         v-if="stepsState.isStep3Initialized"
         :task-id="taskId"
         :choosedTeamData="selectedTeamData"
       />
+
+      <!-- Step 4 -->
+      <Step4 v-show="currentStep === 3" v-if="stepsState.isStep4Initialized" :task-id="taskId" />
     </div>
   </PageWrapper>
 </template>
@@ -50,6 +55,7 @@
   import Step1 from './Step1.vue';
   import Step2 from './Step2.vue';
   import Step3 from './Step3.vue';
+  import Step4 from './Step4.vue';
   import { PageWrapper } from '@/components/Page';
   import { Steps } from 'ant-design-vue';
 
@@ -66,6 +72,7 @@
   const stepsState = reactive({
     isStep2Initialized: false,
     isStep3Initialized: false,
+    isStep4Initialized: false,
   });
 
   // Border width for styling
@@ -92,6 +99,12 @@
     currentStep.value++;
     stepsState.isStep2Initialized = false;
     stepsState.isStep3Initialized = true;
+  }
+
+  function onStep3Next() {
+    currentStep.value++;
+    stepsState.isStep3Initialized = false;
+    stepsState.isStep4Initialized = true;
   }
 
   // Redo button handler

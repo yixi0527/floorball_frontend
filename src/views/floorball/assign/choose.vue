@@ -163,7 +163,7 @@
   }
 
   function sendTeamData() {
-    emit('sendTeamDdata', teams.value);
+    emit('send-team-data', teams.value);
   }
 
   defineExpose({ handleIgnore, handleDeleteRectangle, sendTeamData });

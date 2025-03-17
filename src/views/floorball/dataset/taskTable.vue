@@ -6,7 +6,6 @@
           <TableAction :actions="getTableActions(record)" />
         </template>
       </template>
-
       <template #toolbar>
         <a-button type="warning" @click="handleDeleteTasks">删除选中数据</a-button>
       </template>
@@ -15,7 +14,7 @@
 </template>
 
 <script lang="ts" setup>
-  import { ref, computed, onMounted, defineProps, h, defineExpose } from 'vue';
+  import { ref, computed, onMounted, defineProps, h } from 'vue';
   import { cloneDeep } from 'lodash-es';
   import {
     BasicTable,
@@ -33,6 +32,7 @@
   type TaskRecord = EditRecordRow & {
     taskId: string;
     contestName: string;
+    taskTime: string;
     status: string;
   };
 
@@ -60,6 +60,7 @@
   /* ---------- 工具函数 ---------- */
   function createDefaultColumns(): BasicColumn[] {
     return [
+      { title: '上传时间', dataIndex: 'taskTime', width: 200, editRow: false, sorter: true },
       { title: '比赛名称', dataIndex: 'contestName', width: 200, editRow: true, sorter: true },
     ];
   }
@@ -106,6 +107,7 @@
       .map((task) => ({
         taskId: task.taskId,
         contestName: task.contestName,
+        taskTime: task.taskTime,
         status: task.status,
       }));
   }
@@ -154,7 +156,7 @@
             onClick: () => startEditing(record),
           },
           {
-            label: '下载',
+            label: '下载分析报告',
             onClick: () => handleDownload(record),
           },
         ];
@@ -238,6 +240,12 @@
     return {
       labelWidth: 100,
       schemas: [
+        {
+          field: 'taskTime',
+          label: '上传时间',
+          component: 'Input',
+          colProps: { xl: 12, xxl: 8 },
+        },
         {
           field: 'contestName',
           label: '比赛名称',

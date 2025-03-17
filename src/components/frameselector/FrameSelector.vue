@@ -103,8 +103,8 @@
     isDragging.value = true;
     dragIndex.value = index;
     const wrapper = document.querySelector('.image-container');
+    if (!wrapper) return;
     const rect = wrapper.getBoundingClientRect();
-
     const point = points.value[index];
     offsetX.value = event.clientX - rect.left - (point.x / 100) * rect.width;
     offsetY.value = event.clientY - rect.top - (point.y / 100) * rect.height;
@@ -114,6 +114,7 @@
     if (!isDragging.value) return;
 
     const wrapper = document.querySelector('.image-container');
+    if (!wrapper) return;
     const rect = wrapper.getBoundingClientRect();
 
     const x = ((event.clientX - rect.left - offsetX.value) / rect.width) * 100;
@@ -138,6 +139,7 @@
   // 计算实际坐标
   const getActualCoordinates = () => {
     const wrapper = document.querySelector('.image-container');
+    if (!wrapper) return [];
     const rect = wrapper.getBoundingClientRect();
     const scaleX = rect.width / imageSize.value.width;
     const scaleY = rect.height / imageSize.value.height;
@@ -211,8 +213,6 @@
     width: 100%;
     height: 100%;
     background: rgb(255 0 0 / 30%);
-
-    /* background线条加粗 */
   }
 
   /* 控制点样式 */

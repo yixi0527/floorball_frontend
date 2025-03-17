@@ -12,6 +12,7 @@ const playermanagment: AppRouteModule = {
     icon: 'ri:team-fill',
     title: '队伍管理',
     orderNo: 0,
+    ignoreAuth: true,
   },
   children: [
     {
@@ -22,6 +23,7 @@ const playermanagment: AppRouteModule = {
         title: '队员数据',
         icon: 'ion:people-circle-sharp',
         hideMenu: false,
+        ignoreAuth: true,
       },
     },
     {
@@ -32,16 +34,7 @@ const playermanagment: AppRouteModule = {
         title: '历史竞赛',
         icon: 'ion:trophy-sharp',
         hideMenu: false,
-      },
-    },
-    {
-      path: '/playersHistory',
-      name: 'playersHistory',
-      component: () => import('@/views/floorball/dataset/playerTable.vue'),
-      meta: {
-        title: '球员表现',
-        icon: 'ion:accessibility-sharp',
-        hideMenu: false,
+        ignoreAuth: true,
       },
     },
   ],
