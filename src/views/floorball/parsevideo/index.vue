@@ -9,7 +9,7 @@
       <Steps :current="currentStep">
         <Steps.Step title="上传视频" />
         <Steps.Step title="分析视频" />
-        <Steps.Step title="人工矫正" />
+        <Steps.Step title="人工校正（可选）" />
         <Steps.Step title="下载报告" />
       </Steps>
     </div>

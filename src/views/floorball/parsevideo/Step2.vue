@@ -95,16 +95,17 @@
     targetValue: number,
   ) {
     const currentValue = progressStatus.value[progressType];
-    const increment = targetValue > currentValue ? 1 : -1; // Determine the direction of progress
+    progressStatus.value[progressType] = targetValue;
+    // const increment = targetValue > currentValue ? 1 : -1; // Determine the direction of progress
 
-    const interval = setInterval(() => {
-      progressStatus.value[progressType] += increment;
+    // const interval = setInterval(() => {
+    //   progressStatus.value[progressType] += increment;
 
-      if (progressStatus.value[progressType] > targetValue) {
-        progressStatus.value[progressType] = targetValue; // Ensure we don't overshoot
-        clearInterval(interval);
-      }
-    }, 50); // Update progress every 50 ms for a smooth transition
+    //   if (progressStatus.value[progressType] > targetValue) {
+    //     progressStatus.value[progressType] = targetValue; // Ensure we don't overshoot
+    //     clearInterval(interval);
+    //   }
+    // }, 50); // Update progress every 50 ms for a smooth transition
   }
 
   async function autoUpdateAnnotation(taskId, key) {

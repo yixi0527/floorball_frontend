@@ -6,10 +6,10 @@
       <div :style="{ display: 'flex', justifyContent: 'center', marginTop: '20px' }">
         <!-- Confirm Selection Button -->
         <a-button type="primary" @click="logSelection" :style="{ margin: '5px' }"
-          >确认分配</a-button
+          >确认匹配</a-button
         >
         <!-- Complete Assignment Button -->
-        <a-button @click="completeAssociate" :style="{ margin: '5px' }">分配完成</a-button>
+        <a-button @click="completeAssociate" :style="{ margin: '5px' }">完成校正</a-button>
       </div>
     </div>
     <div class="box">
@@ -100,14 +100,14 @@
     }
     matchRelatedData(matchId.value.track_id, playerId.value);
 
-    createMessage.success('配对成功');
+    createMessage.success('匹配成功');
     console.log('选中的 Match ID:', matchId.value, '选中的 Player ID:', playerId.value);
   };
 
   const emit = defineEmits(['redo', 'next']);
 
   async function completeAssociate() {
-    createMessage.success('分配完成');
+    createMessage.success('完成！');
     emit('next');
     return;
   }
