@@ -73,7 +73,6 @@
 
   // 处理比赛切换
   const handleTaskChange = (value: string) => {
-    console.log('currentTaskId', value);
     currentTaskId.value = value;
     updateChart();
   };

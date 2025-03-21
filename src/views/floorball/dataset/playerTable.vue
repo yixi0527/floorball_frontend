@@ -100,8 +100,8 @@
 
   function createTableConfig() {
     return {
-      title: '队伍管理',
-      titleHelpMessage: ['队伍管理'],
+      title: '数据中心',
+      titleHelpMessage: ['数据中心'],
       columns: getTableColumns.value,
       showIndexColumn: false,
       showTableSetting: true,

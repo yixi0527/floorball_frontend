@@ -9,8 +9,8 @@ const playermanagment: AppRouteModule = {
   redirect: '/players',
   meta: {
     hideChildrenInMenu: false,
-    icon: 'ri:team-fill',
-    title: '队伍管理',
+    icon: 'ant-design:database-outlined',
+    title: '数据中心',
     orderNo: 0,
     ignoreAuth: true,
   },
@@ -31,7 +31,7 @@ const playermanagment: AppRouteModule = {
       name: 'taskList',
       component: () => import('@/views/floorball/dataset/taskTable.vue'),
       meta: {
-        title: '历史竞赛',
+        title: '历史赛事',
         icon: 'ion:trophy-sharp',
         hideMenu: false,
         ignoreAuth: true,

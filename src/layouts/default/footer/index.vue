@@ -1,13 +1,13 @@
 <template>
   <Layout.Footer :class="prefixCls" v-if="getShowLayoutFooter" ref="footerRef">
-    <div :class="`${prefixCls}__links`">
+    <!-- <div :class="`${prefixCls}__links`">
       <a @click="openWindow(SITE_URL)">{{ t('layout.footer.onlinePreview') }}</a>
 
       <GithubFilled @click="openWindow(GITHUB_URL)" :class="`${prefixCls}__github`" />
 
       <a @click="openWindow(DOC_URL)">{{ t('layout.footer.onlineDocument') }}</a>
-    </div>
-    <div>Copyright &copy;2025 SmartVision Field</div>
+    </div> -->
+    <div>Copyright &copy;2025 东华大学计算机科学与技术学院</div>
   </Layout.Footer>
 </template>
 <script lang="ts" setup>

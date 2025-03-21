@@ -4,7 +4,7 @@
     <div v-if="loading" class="loading-container">
       <a-spin size="large" />
     </div>
-
+    <!-- 加载完成状态 -->
     <template v-else>
       <!-- 运动员信息卡片 -->
       <a-row :gutter="16" class="mb-4">
@@ -36,7 +36,7 @@
               :endVal="averageTotalMovement"
               class="text-2xl"
               :decimals="2"
-              :duration="500"
+              :duration="1000"
             />
             <Icon icon="ri:run-fill" :size="40" />
           </div>
@@ -47,7 +47,7 @@
               :startVal="1"
               :endVal="totalDistance"
               :decimals="2"
-              :duration="500"
+              :duration="1000"
             />
           </div>
         </Card>
@@ -67,7 +67,7 @@
               :endVal="averageDirectionChanges"
               class="text-2xl"
               :decimals="0"
-              :duration="500"
+              :duration="1000"
             />
             <Icon icon="ri:direction-line" :size="40" />
           </div>
@@ -78,7 +78,7 @@
               :startVal="1"
               :endVal="totalDirectionChanges"
               :decimals="2"
-              :duration="500"
+              :duration="1000"
             />
           </div>
         </Card>
@@ -98,7 +98,7 @@
               :endVal="averageHighIntensityTime"
               class="text-2xl"
               :decimals="2"
-              :duration="500"
+              :duration="1000"
             />
             <Icon icon="ri:fire-line" :size="40" />
           </div>
@@ -109,7 +109,7 @@
               :startVal="1"
               :endVal="totalHighIntensityTime"
               :decimals="2"
-              :duration="500"
+              :duration="1000"
             />
           </div>
         </Card>
@@ -129,7 +129,7 @@
               :endVal="averageMaxSpeed"
               class="text-2xl"
               :decimals="2"
-              :duration="500"
+              :duration="1000"
             />
             <Icon icon="ri:dashboard-line" :size="40" />
           </div>
@@ -140,7 +140,7 @@
               :startVal="1"
               :endVal="maxSpeed"
               :decimals="2"
-              :duration="500"
+              :duration="1000"
             />
           </div>
         </Card>
@@ -148,62 +148,64 @@
 
       <Divider />
 
-      <SpeedsPlots :playerResults="playerResults" class="md:flex enter-y" />
+      <Card :tab-list="tabList" :active-tab-key="activeTab" @tab-change="onTabChange">
+        <!-- 速度加速度曲线 -->
+        <template v-if="activeTab === 'speed'">
+          <SpeedsPlots :player-results="playerResults" />
+        </template>
+
+        <!-- 不同指标柱状图 -->
+        <template v-if="activeTab === 'movement'">
+          <MovementPlots :player-results="playerResults" metric="total_movement" />
+        </template>
+
+        <template v-if="activeTab === 'direction'">
+          <MovementPlots :player-results="playerResults" metric="change_direction" />
+        </template>
+
+        <template v-if="activeTab === 'intensity'">
+          <MovementPlots :player-results="playerResults" metric="high_intensity" />
+        </template>
+
+        <template v-if="activeTab === 'max_speed'">
+          <MovementPlots :player-results="playerResults" metric="max_speed" />
+        </template>
+
+        <template v-if="activeTab === 'compare'">
+          <PlayerRadarChart :player-id="playerId" />
+        </template>
+      </Card>
 
       <Divider />
-
-      <!-- 比赛列表和详细分析 -->
-      <!-- <a-row :gutter="16">
-        <a-col :xs="24" :md="12">
-          <a-card :bordered="false" title="比赛列表">
-            <a-table
-              :columns="columns"
-              :data-source="tableData"
-              :pagination="{ pageSize: 5 }"
-              @change="handleTableChange"
-              :row-class-name="
-                (_record, index) => (index === selectedRowIndex ? 'selected-row' : '')
-              "
-              @row-click="(record, index) => selectGame(record, index)"
-            />
-          </a-card>
-        </a-col>
-        <a-col :xs="24" :md="12">
-          <a-card :bordered="false" title="比赛详情">
-            <template v-if="selectedGame">
-              <a-tabs default-active-key="1">
-                <a-tab-pane key="1" tab="运动轨迹">
-                  <div v-if="selectedGame.track_path" class="image-container">
-                    <img :src="selectedGame.track_path" alt="运动轨迹" class="responsive-image" />
-                  </div>
-                  <a-empty v-else description="暂无轨迹数据" />
-                </a-tab-pane>
-                <a-tab-pane key="2" tab="热力图">
-                  <div v-if="selectedGame.heat_map_path" class="image-container">
-                    <img :src="selectedGame.heat_map_path" alt="热力图" class="responsive-image" />
-                  </div>
-                  <a-empty v-else description="暂无热力图数据" />
-                </a-tab-pane>
-              </a-tabs>
-            </template>
-            <a-empty v-else description="请选择一场比赛查看详情" />
-          </a-card>
-        </a-col>
-      </a-row> -->
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-  import { ref, computed, onMounted, watch, nextTick } from 'vue';
+  import { ref, onMounted } from 'vue';
   import { useMessage } from '@/hooks/web/useMessage';
-  import { Card, Divider, Empty, Descriptions, Steps, Tabs, Tag } from 'ant-design-vue';
-  import { useECharts } from '@/hooks/web/useECharts';
+  import { Card, Divider, Descriptions, Tag } from 'ant-design-vue';
   import { getPlayerResults, getPlayerInfo } from '@/views/floorball/athletesData/api/player';
   import { usePlayerStats } from '@/views/floorball/athletesData/hooks/usePlayerStats';
   import { CountTo } from '@/components/CountTo';
   import Icon from '@/components/Icon/Icon.vue';
   import SpeedsPlots from './SpeedsPlots.vue';
+  import MovementPlots from './MovementPlots.vue';
+  import PlayerRadarChart from './PlayerRadarChart.vue';
+
+  const activeTab = ref('speed');
+  const tabList = [
+    { key: 'speed', tab: '速度曲线' },
+    { key: 'movement', tab: '移动距离' },
+    { key: 'direction', tab: '转向次数' },
+    { key: 'intensity', tab: '高强度时间' },
+    { key: 'max_speed', tab: '最大速度' },
+    { key: 'compare', tab: '综合对比' },
+  ];
+
+  function onTabChange(key) {
+    activeTab.value = key;
+  }
 
   const props = defineProps({
     playerId: {
@@ -214,16 +216,19 @@
 
   const { createMessage } = useMessage();
   const loading = ref(true);
-  const playerResults = ref([]);
-  const selectedGame = ref(null);
-  const selectedRowIndex = ref(null);
-  const playerName = ref('');
 
-  // 图表引用
-  const distanceChartRef = ref(null);
-  const speedChartRef = ref(null);
-  const accelerationChartRef = ref(null);
-  const speedAnalysisChartRef = ref(null);
+  interface PlayerResult {
+    speed_list?: string;
+    acceleration_list?: string;
+    heat_map_path?: string;
+    track_path?: string;
+    parsedSpeedList?: number[];
+    parsedAccelerationList?: number[];
+    [key: string]: any; // Add additional fields as needed
+  }
+
+  const playerResults = ref<PlayerResult[]>([]);
+  const playerName = ref('');
 
   // 从自定义钩子获取数据统计方法
   const {
@@ -237,41 +242,6 @@
     averageMaxSpeed,
   } = usePlayerStats(playerResults);
 
-  // 表格列定义
-  const columns = [
-    {
-      title: '任务ID',
-      dataIndex: 'taskId',
-      key: 'taskId',
-    },
-    {
-      title: '移动距离 (米)',
-      dataIndex: 'totalMovement',
-      key: 'totalMovement',
-      sorter: (a, b) => a.totalMovement - b.totalMovement,
-    },
-    {
-      title: '转向次数',
-      dataIndex: 'changeDirectionTimes',
-      key: 'changeDirectionTimes',
-      sorter: (a, b) => a.changeDirectionTimes - b.changeDirectionTimes,
-    },
-    {
-      title: '高强度跑动 (分钟)',
-      dataIndex: 'highIntensityRunningTime',
-      key: 'highIntensityRunningTime',
-      sorter: (a, b) => a.highIntensityRunningTime - b.highIntensityRunningTime,
-      customRender: ({ text }) => (text / 60).toFixed(2),
-    },
-  ];
-
-  // 格式化后的表格数据
-  const tableData = computed(() => {
-    return playerResults.value.map((game) => ({
-      ...game,
-      key: game.taskId,
-    }));
-  });
   function getUrlPath(imageUrl: string): string {
     const index = imageUrl.indexOf('/results');
     if (index !== -1) {
@@ -279,13 +249,12 @@
     }
     return ''; // 如果没有找到 '/results'，返回空字符串
   }
+
   // 获取运动员比赛数据
   const fetchPlayerResults = async () => {
     loading.value = true;
     try {
       const data = await getPlayerResults(props.playerId);
-      console.log('received data from getPlayerResults', data);
-
       if (data && Array.isArray(data)) {
         playerResults.value = data.map((result) => {
           // 解析字符串形式的列表数据
@@ -301,17 +270,12 @@
           if (result.track_path && typeof result.track_path === 'string') {
             result.track_path = getUrlPath(result.track_path);
           }
-          console.log('parsed result:', result);
+          // Ensure task_id is present
+          if (!result.task_id) {
+            result.task_id = ''; // Provide a default value or handle appropriately
+          }
           return result;
         });
-
-        // 如果有结果，默认选中最后一个
-        if (playerResults.value.length > 0) {
-          selectGame(
-            playerResults.value[playerResults.value.length - 1],
-            playerResults.value.length - 1,
-          );
-        }
       } else {
         playerResults.value = [];
         createMessage.warning('未找到该运动员的数据');
@@ -325,354 +289,11 @@
     }
   };
 
-  // 选择比赛展示详细信息
-  const selectGame = (game, index) => {
-    selectedGame.value = game;
-    selectedRowIndex.value = index;
-
-    // 在选择比赛后渲染速度分析图表
-    nextTick(() => {
-      if (speedAnalysisChartRef.value && game.parsedSpeedList) {
-        renderSpeedAnalysisChart(game);
-      }
-    });
-  };
-
-  // 处理表格变化
-  const handleTableChange = () => {
-    // 表格分页、排序等变化时的处理逻辑
-  };
-
-  // 格式化数字显示
-  const formatNumber = (num, decimals = 2) => {
-    if (num === undefined || num === null) return '0';
-    return Number(num)
-      .toFixed(decimals)
-      .replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
-
-  // 渲染距离趋势图表
-  const renderDistanceChart = () => {
-    if (!distanceChartRef.value || playerResults.value.length === 0) return;
-
-    const { setOptions } = useECharts(distanceChartRef.value);
-
-    const taskIds = playerResults.value.map((game) => game.taskId);
-    const distances = playerResults.value.map((game) => game.totalMovement);
-
-    setOptions({
-      tooltip: {
-        trigger: 'axis',
-        formatter: '{b}: {c} 米',
-      },
-      xAxis: {
-        type: 'category',
-        data: taskIds,
-        axisLabel: {
-          rotate: 45,
-          formatter: (value) => {
-            return value.length > 10 ? value.substring(0, 10) + '...' : value;
-          },
-        },
-      },
-      yAxis: {
-        type: 'value',
-        name: '距离 (米)',
-      },
-      series: [
-        {
-          data: distances,
-          type: 'line',
-          smooth: true,
-          lineStyle: {
-            width: 3,
-            color: '#1890ff',
-          },
-          areaStyle: {
-            color: {
-              type: 'linear',
-              x: 0,
-              y: 0,
-              x2: 0,
-              y2: 1,
-              colorStops: [
-                {
-                  offset: 0,
-                  color: 'rgba(24, 144, 255, 0.3)',
-                },
-                {
-                  offset: 1,
-                  color: 'rgba(24, 144, 255, 0.1)',
-                },
-              ],
-            },
-          },
-        },
-      ],
-    });
-  };
-
-  // 渲染速度分析图表
-  const renderSpeedChart = () => {
-    if (!speedChartRef.value || playerResults.value.length === 0) return;
-
-    const { setOptions } = useECharts(speedChartRef.value);
-
-    // 准备数据：每场比赛的平均速度和最高速度
-    const taskIds = playerResults.value.map((game) => game.taskId);
-    const avgSpeeds = playerResults.value.map((game) => {
-      if (game.parsedSpeedList && game.parsedSpeedList.length > 0) {
-        return (
-          game.parsedSpeedList.reduce((sum, speed) => sum + speed, 0) / game.parsedSpeedList.length
-        );
-      }
-      return 0;
-    });
-
-    const maxSpeeds = playerResults.value.map((game) => {
-      if (game.parsedSpeedList && game.parsedSpeedList.length > 0) {
-        return Math.max(...game.parsedSpeedList);
-      }
-      return 0;
-    });
-
-    setOptions({
-      tooltip: {
-        trigger: 'axis',
-      },
-      legend: {
-        data: ['平均速度', '最高速度'],
-      },
-      xAxis: {
-        type: 'category',
-        data: taskIds,
-        axisLabel: {
-          rotate: 45,
-          formatter: (value) => {
-            return value.length > 10 ? value.substring(0, 10) + '...' : value;
-          },
-        },
-      },
-      yAxis: {
-        type: 'value',
-        name: '速度 (km/h)',
-      },
-      series: [
-        {
-          name: '平均速度',
-          type: 'bar',
-          data: avgSpeeds,
-          itemStyle: {
-            color: '#69c0ff',
-          },
-        },
-        {
-          name: '最高速度',
-          type: 'line',
-          data: maxSpeeds,
-          itemStyle: {
-            color: '#ff4d4f',
-          },
-          symbol: 'circle',
-          symbolSize: 8,
-        },
-      ],
-    });
-  };
-
-  // 渲染加速度分析图表
-  const renderAccelerationChart = () => {
-    if (!accelerationChartRef.value || playerResults.value.length === 0) return;
-
-    const { setOptions } = useECharts(accelerationChartRef.value);
-
-    // 准备数据：各场比赛加速度统计
-    const taskIds = playerResults.value.map((game) => game.taskId);
-
-    // 计算每场比赛的加速度统计
-    const accStatistics = playerResults.value.map((game) => {
-      if (!game.parsedAccelerationList || game.parsedAccelerationList.length === 0) {
-        return { avg: 0, max: 0, min: 0 };
-      }
-
-      const accs = game.parsedAccelerationList;
-      return {
-        avg: accs.reduce((sum, acc) => sum + acc, 0) / accs.length,
-        max: Math.max(...accs),
-        min: Math.min(...accs),
-      };
-    });
-
-    setOptions({
-      tooltip: {
-        trigger: 'axis',
-        formatter: function (params) {
-          const taskId = params[0].axisValue;
-          let result = `任务ID: ${taskId}<br/>`;
-
-          params.forEach((param) => {
-            result += `${param.seriesName}: ${param.value.toFixed(2)} m/s²<br/>`;
-          });
-
-          return result;
-        },
-      },
-      legend: {
-        data: ['平均加速度', '最大加速度', '最小加速度'],
-      },
-      xAxis: {
-        type: 'category',
-        data: taskIds,
-        axisLabel: {
-          rotate: 45,
-          formatter: (value) => {
-            return value.length > 10 ? value.substring(0, 10) + '...' : value;
-          },
-        },
-      },
-      yAxis: {
-        type: 'value',
-        name: '加速度 (m/s²)',
-      },
-      series: [
-        {
-          name: '平均加速度',
-          type: 'line',
-          data: accStatistics.map((stat) => stat.avg),
-          lineStyle: {
-            color: '#1890ff',
-          },
-        },
-        {
-          name: '最大加速度',
-          type: 'line',
-          data: accStatistics.map((stat) => stat.max),
-          lineStyle: {
-            color: '#f5222d',
-          },
-        },
-        {
-          name: '最小加速度',
-          type: 'line',
-          data: accStatistics.map((stat) => stat.min),
-          lineStyle: {
-            color: '#52c41a',
-          },
-        },
-      ],
-    });
-  };
-
-  // 渲染速度分析详细图表
-  const renderSpeedAnalysisChart = (game) => {
-    if (!speedAnalysisChartRef.value || !game.parsedSpeedList) return;
-
-    const { setOptions } = useECharts(speedAnalysisChartRef.value);
-
-    // 创建时间点（假设样本以固定间隔采集）
-    const timePoints = Array.from({ length: game.parsedSpeedList.length }, (_, i) => i);
-
-    // 准备速度数据
-    const speedData = game.parsedSpeedList;
-
-    // 准备加速度数据（如果有）
-    let accelerationData = [];
-    if (game.parsedAccelerationList && game.parsedAccelerationList.length > 0) {
-      // 确保加速度数据长度与速度数据一致
-      const minLength = Math.min(speedData.length, game.parsedAccelerationList.length);
-      accelerationData = game.parsedAccelerationList.slice(0, minLength);
-    }
-
-    const series = [
-      {
-        name: '速度',
-        type: 'line',
-        smooth: true,
-        yAxisIndex: 0,
-        data: speedData,
-        lineStyle: {
-          width: 3,
-          color: '#1890ff',
-        },
-      },
-    ];
-
-    if (accelerationData.length > 0) {
-      series.push({
-        name: '加速度',
-        type: 'line',
-        smooth: true,
-        yAxisIndex: 1,
-        data: accelerationData,
-        lineStyle: {
-          width: 2,
-          color: '#ff4d4f',
-        },
-      });
-    }
-
-    setOptions({
-      tooltip: {
-        trigger: 'axis',
-        formatter: function (params) {
-          let result = `时间点: ${params[0].dataIndex}<br/>`;
-          params.forEach((param) => {
-            result += `${param.seriesName}: ${param.value.toFixed(2)}${param.seriesName === '速度' ? ' km/h' : ' m/s²'}<br/>`;
-          });
-          return result;
-        },
-      },
-      legend: {
-        data: accelerationData.length > 0 ? ['速度', '加速度'] : ['速度'],
-      },
-      grid: {
-        left: '3%',
-        right: '4%',
-        bottom: '3%',
-        containLabel: true,
-      },
-      xAxis: {
-        type: 'category',
-        data: timePoints,
-        name: '时间',
-      },
-      yAxis: [
-        {
-          type: 'value',
-          name: '速度 (km/h)',
-          position: 'left',
-        },
-        accelerationData.length > 0
-          ? {
-              type: 'value',
-              name: '加速度 (m/s²)',
-              position: 'right',
-            }
-          : null,
-      ].filter(Boolean),
-      series: series,
-    });
-  };
-
-  // 监听数据变化，渲染图表
-  watch(
-    () => playerResults.value,
-    () => {
-      nextTick(() => {
-        renderDistanceChart();
-        renderSpeedChart();
-        renderAccelerationChart();
-      });
-    },
-    { deep: true },
-  );
-
   // 初始化组件
   onMounted(() => {
     // 查询运动员数据
     getPlayerInfo(props.playerId)
       .then((data) => {
-        console.log('received player info:', data);
         playerName.value = data.playerName;
       })
       .catch((error) => {
