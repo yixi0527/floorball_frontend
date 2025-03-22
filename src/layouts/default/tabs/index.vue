@@ -73,7 +73,6 @@
   const { getShowQuick, getShowRedo, getShowFold } = useMultipleTabSetting();
 
   const getTabsState = computed(() => {
-    console.log('getTabsState', tabStore.getTabList);
     return tabStore.getTabList.filter((item) => !item.meta?.hideTab);
   });
 

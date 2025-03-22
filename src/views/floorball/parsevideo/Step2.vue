@@ -204,10 +204,10 @@
   }
 
   function customSubmitFunc() {
-    fetch(`/api/task/${props.taskId}/complete_annotation`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-    });
+    // fetch(`/api/task/${props.taskId}/complete_annotation`, {
+    //   method: 'POST',
+    //   headers: { 'Content-Type': 'application/json' },
+    // });
     emit('next');
   }
 
@@ -324,7 +324,7 @@
     waitingResolvers = []; // 清空等待列表，防止重复调用
   }
   const pollTaskStatus = async () => {
-    if (props.taskId === '') {
+    if (props.taskId === ' ') {
       return;
     }
     const interval = setInterval(async () => {
