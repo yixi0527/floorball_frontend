@@ -6,7 +6,7 @@ export function createFakeUserList() {
     {
       userId: '1',
       username: 'vben',
-      realName: 'SmartVision Field',
+      realName: '软曲智能分析系统 Field',
       avatar: '',
       desc: 'manager',
       password: '123456',
