@@ -240,6 +240,9 @@
     if (!ignoreGroup) return;
     console.log('ignoreGroup:', ignoreGroup);
     ignoreGroup.rectangles.forEach((rect) => {
+      setTimeout(() => {
+        console.log('sleep 1s', rect);
+      }, 500);
       updateAnnotation(rect.annoKey, 'ignore', -1, '');
     });
   }
