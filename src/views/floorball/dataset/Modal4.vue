@@ -24,9 +24,18 @@
   function handleOk() {
     handleSubmit();
   }
-
+  const props = defineProps({
+    userData: { type: Object },
+    taskId: { type: String },
+  });
   const receivedTrackId = ref(null);
   async function matchRelatedData(track_id, player_id) {
+    console.log(
+      'matchRelatedData in add player, track_id, player_id, task_id',
+      track_id,
+      player_id,
+      props.taskId,
+    );
     const formData = new FormData();
     formData.append('track_id', track_id);
     formData.append('player_id', player_id);
@@ -130,10 +139,6 @@
     },
   ];
 
-  const props = defineProps({
-    userData: { type: Object },
-    taskId: { type: String },
-  });
   const modelRef = ref({});
   const [registerForm, { getFieldsValue, setFieldsValue }] = useForm({
     labelWidth: 120,

@@ -25,7 +25,7 @@
               @click="
                 () => {
                   choosedTeam = 'Red';
-                  completeRole();
+                  complete();
                 }
               "
               >提交红队为我方球队</a-button
@@ -42,7 +42,7 @@
               @click="
                 () => {
                   choosedTeam = 'Blue';
-                  completeRole();
+                  complete();
                 }
               "
               >提交蓝队为我方球队</a-button
@@ -96,6 +96,7 @@
   const wrapEl = ref<ElRef>(null);
   const loadingRef = ref(false);
   const choosedTeam = ref('Red');
+  const taskIdStore = ref('');
 
   const props = defineProps({
     taskId: {
@@ -123,22 +124,23 @@
     step.value = 2;
   }
 
-  async function completeRole() {
+  async function complete() {
     console.log('step:', step.value);
     console.log('choosedTeam:', choosedTeam.value);
     if (step.value === 1) {
       await updateIgnore();
       start();
-      fetch(`/api/task/${props.taskId}/complete_annotation`, {
+      await fetch(`/api/task/${props.taskId}/complete_annotation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
 
+      console.log('complete anno', props.taskId);
       const formData = new FormData();
       formData.append('target_team', choosedTeam.value);
       const response = await fetch(`/api/task/${props.taskId}/need_association_database`, {
-        method: 'GET', // 改为 POST 以支持 FormData
-        // body: formData,
+        method: 'POST', // 改为 POST 以支持 FormData
+        body: formData,
       });
       const data = await response.json();
       console.log('Match Data: ', data);
@@ -149,7 +151,12 @@
       showRect.value = true;
       loadingRef.value = false;
     } else if (step.value === 2) {
-      complete();
+      console.log('complete asso', props.taskId);
+      await fetch(`/api/task/${props.taskId}/complete_association`, {
+        method: 'POST',
+      });
+      createMessage.success('校正完成！');
+      emit('next');
     }
   }
 
@@ -198,6 +205,7 @@
 
   // 匹配逻辑验证
   const logSelection = () => {
+    console.log('logselection:', props.taskId);
     playerId.value = tableRef.value.getSelectedPlayerId();
     if (playerId.value == 0) {
       createMessage.error('请在数据库中选择一个球员');
@@ -248,44 +256,6 @@
     });
   }
 
-  // 完成校正（包括anno和asso），进行下一步
-  async function complete() {
-    await fetch(`/api/task/${props.taskId}/complete_association`, {
-      method: 'POST',
-    });
-    createMessage.success('校正完成！');
-    emit('next');
-    return;
-  }
-
-  // 获取需要关联的数据
-  async function getNeedAssoData(taskId: string): Promise<any> {
-    try {
-      const response = await fetch(`/api/task/${taskId}/need_association_database`, {
-        method: 'GET',
-      });
-      if (!response.ok) {
-        throw new Error(`Failed to fetch match data: ${response.statusText}`);
-      }
-      const data = await response.json();
-      console.log('Match Data: ', data);
-      return data;
-    } catch (error) {
-      console.error('Error fetching match data:', error);
-      throw error; // 让调用方知道请求失败
-    }
-  }
-
-  interface Annotation {
-    track_id: number;
-    role_predict: string;
-  }
-
-  // 在这里获取**需要标注的所有项**，其中包括了role_predict，按照其值进行初步分类，并支持手动校正
-  async function extractTrackRoles(taskId: string): Promise<Record<number, string>> {
-    return data;
-  }
-
   // 角色按队伍预分配
   function determineTeamName(role: string): string {
     if (role.includes('Red')) return 'Red Team';
@@ -301,20 +271,6 @@
       return ('http://localhost:8001' + imageUrl.substring(index)).replace(/\\/g, '/'); // +8 是因为 '/results' 的长度为 8
     }
     return ''; // 如果没有找到 '/results'，返回空字符串
-  }
-
-  // 获取图片文件，用于展示
-  async function getImageFile(filename: string): Promise<File | null> {
-    console.log('Fetching image:', getUrlPath(filename));
-    try {
-      const response = await fetch(getUrlPath(filename));
-      if (!response.ok) throw new Error('Failed to fetch image');
-      const blob = await response.blob();
-      return new File([blob], filename, { type: blob.type });
-    } catch (error) {
-      console.error('Error fetching image: ', error);
-      return null;
-    }
   }
 
   async function transformTrackIdToRoleToRect(trackIdtoRole) {
@@ -356,35 +312,6 @@
     console.log('transformedData:', transformedData);
     return transformedData;
   }
-
-  async function transformMatchData(matchData: any, trackIdtoRole: Record<number, string>) {
-    let transformedData: { name: string; rectangles: any[] }[] = [];
-
-    for (const role of matchData.unassigned_roles) {
-      const rolePredict = trackIdtoRole[role.track_id] || 'Unassigned';
-      const teamName = determineTeamName(rolePredict);
-
-      const imgPath = getUrlPath(role.target_image_path);
-      const response = await fetch(`/api/playerdata/${role.predict_player_id}`);
-      const playerInfo = await response.json(); // 解析 JSON 数据
-      let rectangle = {
-        imgPath,
-        track_id: role.track_id,
-        predictPlayerId: role.predict_player_id,
-        role: rolePredict,
-        playerName: playerInfo.playerName,
-      };
-      let team = transformedData.find((team) => team.name === teamName);
-      if (!team) {
-        team = { name: teamName, rectangles: [] };
-        transformedData.push(team);
-      }
-      team.rectangles.push(rectangle);
-    }
-    return transformedData;
-  }
-
-  const matchData = ref<any[]>([]);
 
   function updateTransformedNeedAnnotationData(event) {
     console.log('event: ', event);

@@ -17,6 +17,7 @@
 <script lang="ts" setup>
   import { ref, onMounted, onUnmounted } from 'vue';
   import { Progress, Result, Alert, Divider, Descriptions, Col, Row } from 'ant-design-vue';
+  import { set } from 'nprogress';
 
   const props = defineProps<{
     taskId: string;
@@ -62,7 +63,8 @@
       const response = await checkTaskStatus();
       if (response.status === 'completed') {
         percent.value = 100;
-        await fetch(`/api/task/${props.taskId}/complete_association`, {
+        setTimeout(() => {}, 1000);
+        await fetch(`/api/task/${props.taskId}/add_player_results`, {
           method: 'POST',
         });
         clearInterval(intervalId!);

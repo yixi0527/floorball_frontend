@@ -10,7 +10,11 @@
       <template #toolbar>
         <a-button type="primary" @click="handleCreatePlayer">新增队员</a-button>
         <a-button type="warning" @click="handleDeletePlayers">删除选中数据</a-button>
-        <PlayerModal @register="registerPlayerModal" @success="handleModalSuccess" />
+        <PlayerModal
+          @register="registerPlayerModal"
+          @success="handleModalSuccess"
+          :taskId="props.taskId"
+        />
       </template>
     </BasicTable>
   </div>
