@@ -4,7 +4,7 @@
       <label for="teamSelect" class="font-bold">选择队伍:</label>
       <Dropdown
         @menu-event="(event) => selectTeam(event)"
-        :trigger="['click']"
+        :trigger="['hover']"
         :dropMenuList="dropdownTeams"
       >
         <a-button class="border p-2 rounded bg-gray-100">
@@ -14,7 +14,7 @@
     </div>
     <div v-if="step === 1">
       <div class="flex space-x-4">
-        <Dropdown @menu-event="handleMenuEvent" :trigger="['click']" :dropMenuList="redTeamOptions">
+        <Dropdown @menu-event="handleMenuEvent" :trigger="['hover']" :dropMenuList="redTeamOptions">
           <a-button
             :style="{
               backgroundColor: '#e57373',
@@ -29,7 +29,7 @@
 
         <Dropdown
           @menu-event="handleMenuEvent"
-          :trigger="['click']"
+          :trigger="['hover']"
           :dropMenuList="blueTeamOptions"
         >
           <a-button
@@ -56,9 +56,8 @@
         @click="selectImage(rectangle)"
         class="cursor-pointer p-2 border rounded-lg transition duration-200 transform hover:scale-105"
         :class="{
-          'border-blue-500 shadow-lg': selectedRects.some(
-            (item) => item.track_id === rectangle.track_id,
-          ),
+          'border-blue-500 shadow-lg': rectangle.track_id === selectedRects[0]?.track_id,
+          'border-green-500 shadow-lg': rectangle.track_id === selectedRects[1]?.track_id,
         }"
       >
         <div
