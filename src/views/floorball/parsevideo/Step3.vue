@@ -11,14 +11,50 @@
           :step="step"
         />
         <div :style="{ display: 'flex', justifyContent: 'center', marginTop: '20px' }">
+          <div v-if="step === 1">
+            <a-button
+              :style="{
+                margin: '5px',
+                backgroundColor: '#e57373',
+                borderColor: '#e57373',
+                marginBottom: '20px',
+                color: '#fff',
+              }"
+              type="primary"
+              @click="
+                () => {
+                  choosedTeam = 'Red';
+                  completeRole();
+                }
+              "
+              >提交红队为我方球队</a-button
+            >
+            <a-button
+              :style="{
+                margin: '5px',
+                backgroundColor: '#64b5f6',
+                borderColor: '#64b5f6',
+                marginBottom: '20px',
+                color: '#fff',
+              }"
+              type="primary"
+              @click="
+                () => {
+                  choosedTeam = 'Blue';
+                  completeRole();
+                }
+              "
+              >提交蓝队为我方球队</a-button
+            >
+          </div>
           <div v-if="step === 2">
             <a-button type="primary" @click="logSelection" :style="{ margin: '5px' }"
               >确认匹配</a-button
             >
+            <a-button type="primary" @click="complete" :style="{ margin: '5px' }"
+              >完成校正</a-button
+            >
           </div>
-          <a-button :style="{ margin: '5px' }" @click="completeRole" type="primary"
-            >完成校正</a-button
-          >
         </div>
       </div>
     </ScrollXTransition>
@@ -58,6 +94,7 @@
   const step = ref(1);
   const wrapEl = ref<ElRef>(null);
   const loadingRef = ref(false);
+  const choosedTeam = ref('');
 
   const props = defineProps({
     taskId: {
@@ -86,14 +123,21 @@
   }
 
   async function completeRole() {
+    console.log('step:', step.value);
+    console.log('choosedTeam:', choosedTeam.value);
     if (step.value === 1) {
+      await updateIgnore();
       start();
       fetch(`/api/task/${props.taskId}/complete_annotation`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
+
+      const formData = new FormData();
+      formData.append('target_team', choosedTeam.value);
       const response = await fetch(`/api/task/${props.taskId}/need_association_database`, {
-        method: 'GET',
+        method: 'POST', // 改为 POST 以支持 FormData
+        body: formData,
       });
       const data = await response.json();
       console.log('Match Data: ', data);
@@ -165,6 +209,40 @@
     console.log('选中的 Match ID:', rect.value, '选中的 Player ID:', playerId.value);
     createMessage.success('匹配成功');
   };
+
+  async function updateAnnotation(key, action, assigned_track_id, role) {
+    const url = `/api/task/${props.taskId}/annotations/${key}`;
+    const params = {
+      action: action,
+      assigned_track_id: assigned_track_id,
+      role: role,
+    };
+
+    try {
+      await fetch(url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json', // 指定 JSON 类型
+        },
+        body: JSON.stringify(params), // 转换为 JSON 字符串
+      });
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  async function updateIgnore() {
+    console.log('updateIgnore', transformedNeedAnnotationData.value);
+    // 遍历transformedNeedAnnotationData.value，找到name为Ignore的group, 并将其中的rectangles，使用updateAnnotation，为里面的每一个rect发送ingore请求
+    const ignoreGroup = transformedNeedAnnotationData.value.find(
+      (group) => group.name === 'Ignore',
+    );
+    if (!ignoreGroup) return;
+    console.log('ignoreGroup:', ignoreGroup);
+    ignoreGroup.rectangles.forEach((rect) => {
+      updateAnnotation(rect.annoKey, 'ignore', -1, '');
+    });
+  }
 
   // 完成校正（包括anno和asso），进行下一步
   async function complete() {
@@ -256,7 +334,6 @@
       } else {
         name = '未匹配';
       }
-      console.log('name:', name);
       let rectangle = {
         imgPath,
         track_id: t2r.track_id,
