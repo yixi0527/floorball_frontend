@@ -31,7 +31,7 @@
     },
   });
   const image = ref(null);
-  const borderWidth = ref(350);
+  const borderWidth = ref(10);
   const imageSize = ref({ width: 0, height: 0 });
   const points = ref([
     { x: 20, y: 20 },

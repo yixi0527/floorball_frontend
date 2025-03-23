@@ -54,17 +54,23 @@
     <div class="grid grid-cols-3 gap-4 mt-4">
       <div
         v-for="rectangle in selectedRectangles"
-        :key="rectangle.track_id"
+        :key="rectangle.annoKey"
         @click="selectImage(rectangle)"
         class="cursor-pointer p-2 border rounded-lg transition duration-200 transform hover:scale-105"
         :class="{
-          'border-blue-500 shadow-lg': rectangle.track_id === selectedRects[0]?.track_id,
-          'border-green-500 shadow-lg': rectangle.track_id === selectedRects[1]?.track_id,
+          'border-blue-500 shadow-lg': rectangle.annoKey === selectedRects[0]?.annoKey,
+          'border-green-500 shadow-lg': rectangle.annoKey === selectedRects[1]?.annoKey,
         }"
       >
         <div
           class="w-full h-36 bg-gray-200 flex justify-center items-center rounded-md overflow-hidden relative"
         >
+          <p
+            class="absolute top-2 left-2 text-sm font-bold text-gray-800 bg-white bg-opacity-75 px-2 py-1 rounded"
+            v-if="step === 1"
+          >
+            {{ step === 1 ? rectangle.track_id : '' }}
+          </p>
           <img :src="rectangle.imgPath" alt="Player Image" class="w-full h-full object-contain" />
           <p
             class="absolute bottom-2 right-2 text-sm font-bold text-gray-800 bg-white bg-opacity-75 px-2 py-1 rounded"
@@ -84,11 +90,16 @@
   import { message } from 'ant-design-vue';
 
   const { createMessage } = useMessage();
-  const props = defineProps({ data: Array, taskId: String, step: Number });
+  const props = defineProps({
+    data: Array,
+    taskId: String,
+    step: Number,
+    selectedTeamProp: String,
+  });
   const emit = defineEmits(['imageSelected', 'completeUpdate']);
 
   const dataLoaded = ref(false);
-  const selectedTeam = ref('');
+  const selectedTeam = props.selectedTeamProp ? ref(props.selectedTeamProp) : ref('');
   const selectedRects = ref([]);
 
   const dropdownTeams = computed(() =>
@@ -151,12 +162,17 @@
     selectedTeam.value = event.event;
   };
 
-  const selectedRectangles = computed(
-    () => props.data.find((team) => team.name === selectedTeam.value)?.rectangles || [],
-  );
+  const selectedRectangles = computed(() => {
+    return (
+      props.data
+        .find((team) => team.name === selectedTeam.value)
+        ?.rectangles?.slice()
+        .sort((a, b) => a.track_id - b.track_id) || []
+    );
+  });
 
   const selectImage = (rectangle) => {
-    const index = selectedRects.value.findIndex((item) => item.track_id === rectangle.track_id);
+    const index = selectedRects.value.findIndex((item) => item.annoKey === rectangle.annoKey);
     if (index !== -1) {
       selectedRects.value.splice(index, 1);
     } else {
@@ -181,6 +197,7 @@
       return;
     }
     updateAnnotation(selectedRects.value[0].annoKey, 'assign', selectedRects.value[1].track_id, '');
+    selectedRects.value[1].track_id = selectedRects.value[0].track_id;
     emit('completeUpdate', 'assign');
     selectedRects.value = [];
     message.success('匹配成功');

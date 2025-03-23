@@ -9,6 +9,7 @@
           ref="matchComponent"
           :taskId="props.taskId"
           :step="step"
+          :selectedTeam="choosedTeam"
         />
         <div :style="{ display: 'flex', justifyContent: 'center', marginTop: '20px' }">
           <div v-if="step === 1">
@@ -94,7 +95,7 @@
   const step = ref(1);
   const wrapEl = ref<ElRef>(null);
   const loadingRef = ref(false);
-  const choosedTeam = ref('');
+  const choosedTeam = ref('Red');
 
   const props = defineProps({
     taskId: {
@@ -136,8 +137,8 @@
       const formData = new FormData();
       formData.append('target_team', choosedTeam.value);
       const response = await fetch(`/api/task/${props.taskId}/need_association_database`, {
-        method: 'POST', // 改为 POST 以支持 FormData
-        body: formData,
+        method: 'GET', // 改为 POST 以支持 FormData
+        // body: formData,
       });
       const data = await response.json();
       console.log('Match Data: ', data);
