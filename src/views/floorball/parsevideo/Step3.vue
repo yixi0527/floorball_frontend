@@ -351,6 +351,7 @@
     // 更新角色信息
     foundRect.role = newRoleData.role;
     foundRect.playerName = newRoleData.role;
+    trackIdtoRoleDict[track_id] = newRoleData.role;
 
     // 如果新分组与旧分组相同，则只修改 role
     if (transformedNeedAnnotationData.value[oldGroupIndex].name === newRoleData.group) {
