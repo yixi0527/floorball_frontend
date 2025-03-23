@@ -1,16 +1,18 @@
 <template>
   <div class="p-4 space-y-4" v-if="dataLoaded">
     <div class="flex items-center space-x-4">
-      <label for="teamSelect" class="font-bold">选择队伍:</label>
-      <Dropdown
-        @menu-event="(event) => selectTeam(event)"
-        :trigger="['hover']"
-        :dropMenuList="dropdownTeams"
-      >
-        <a-button class="border p-2 rounded bg-gray-100">
-          {{ selectedTeamLabel }}
-        </a-button>
-      </Dropdown>
+      <div v-if="step === 1">
+        <label for="teamSelect" class="font-bold">选择队伍:</label>
+        <Dropdown
+          @menu-event="(event) => selectTeam(event)"
+          :trigger="['hover']"
+          :dropMenuList="dropdownTeams"
+        >
+          <a-button class="border p-2 rounded bg-gray-100">
+            {{ selectedTeamLabel }}
+          </a-button>
+        </Dropdown>
+      </div>
     </div>
     <div v-if="step === 1">
       <div class="flex space-x-4">
