@@ -201,7 +201,7 @@
   function getTableActions(record: TaskRecord): ActionItem[] {
     return record.editable
       ? [
-          { label: '保存', onClick: () => handleSaveTask(record) },
+          { label: '保存', onClick: () => handleSavePlayer(record) },
           { label: '取消', onClick: () => record.onEdit?.(false) },
         ]
       : [

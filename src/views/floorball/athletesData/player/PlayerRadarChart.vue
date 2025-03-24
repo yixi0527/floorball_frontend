@@ -21,9 +21,11 @@
 
   interface PlayerResult {
     task_id: string;
-    total_distance: number;
+    total_movement: number;
     change_direction_times: number;
     high_intensity_running_time: number;
+    speed_list: string | number[];
+    acceleration_list: string | number[];
     parsedSpeedList: number[];
     parsedAccelerationList: number[];
   }
@@ -46,20 +48,20 @@
       ]);
 
       const info = await infoRes.json();
-      const results: PlayerResult[] = await resultsRes.json();
+      const results = await resultsRes.json();
 
       // 计算各项指标
       return {
         playerId,
         playerName: info.playerName,
-        totalDistance: results.reduce((sum, r) => sum + (r.total_distance || 0), 0),
+        totalDistance: results.reduce((sum, r) => sum + (r.total_movement || 0), 0),
         directionChanges: results.reduce((sum, r) => sum + (r.change_direction_times || 0), 0),
         highIntensityTime: results.reduce(
           (sum, r) => sum + (r.high_intensity_running_time || 0),
           0,
         ),
-        maxSpeed: Math.max(...results.flatMap((r) => r.parsedSpeedList || [])),
-        maxAcceleration: Math.max(...results.flatMap((r) => r.parsedAccelerationList || [])),
+        maxSpeed: Math.max(...results.flatMap((r) => JSON.parse(r.speed_list) || [])),
+        maxAcceleration: Math.max(...results.flatMap((r) => JSON.parse(r.acceleration_list) || [])),
       };
     } catch (e) {
       console.error(`获取运动员${playerId}数据失败:`, e);
@@ -100,13 +102,13 @@
   const generateRadarOptions = computed(() => {
     if (allPlayersData.value.length === 0) return null;
 
-    // 计算各维度最大值（留出20%余量）
+    // 计算各维度最大值
     const maxValues = {
-      totalDistance: Math.max(...allPlayersData.value.map((d) => d.totalDistance)) * 1,
-      directionChanges: Math.max(...allPlayersData.value.map((d) => d.directionChanges)) * 1,
-      highIntensityTime: Math.max(...allPlayersData.value.map((d) => d.highIntensityTime)) * 1,
-      maxSpeed: Math.max(...allPlayersData.value.map((d) => d.maxSpeed)) * 1,
-      maxAcceleration: Math.max(...allPlayersData.value.map((d) => d.maxAcceleration)) * 1,
+      totalDistance: Math.max(...allPlayersData.value.map((d) => d.totalDistance)) * 1.5,
+      directionChanges: Math.max(...allPlayersData.value.map((d) => d.directionChanges)) * 1.5,
+      highIntensityTime: Math.max(...allPlayersData.value.map((d) => d.highIntensityTime)) * 1.5,
+      maxSpeed: Math.max(...allPlayersData.value.map((d) => d.maxSpeed)) * 1.5,
+      maxAcceleration: Math.max(...allPlayersData.value.map((d) => d.maxAcceleration)) * 1.5,
     };
 
     // 生成每个选手的数据
@@ -158,11 +160,11 @@
         //   color: '#666',
         // },
         indicator: [
-          { name: '总跑动距离', max: maxValues.totalDistance },
-          { name: '转向次数', max: maxValues.directionChanges },
-          { name: '高强度时间', max: maxValues.highIntensityTime },
-          { name: '最大速度', max: maxValues.maxSpeed },
-          { name: '最大加速度', max: maxValues.maxAcceleration },
+          { name: '总跑动距离', max: 1.0 },
+          { name: '转向次数', max: 1.0 },
+          { name: '高强度时间', max: 1.0 },
+          { name: '最大速度', max: 1.0 },
+          { name: '最大加速度', max: 1.0 },
         ],
         splitArea: {
           areaStyle: {

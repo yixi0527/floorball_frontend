@@ -1,5 +1,5 @@
 <template>
-  <Dropdown placement="bottomLeft" :overlayClassName="`${prefixCls}-dropdown-overlay`">
+  <!-- <Dropdown placement="bottomLeft" :overlayClassName="`${prefixCls}-dropdown-overlay`">
     <span :class="[prefixCls, `${prefixCls}--${theme}`]" class="flex">
       <img :class="`${prefixCls}__header`" :src="getUserInfo.avatar" />
       <span :class="`${prefixCls}__info hidden md:block`">
@@ -39,7 +39,8 @@
     </template>
   </Dropdown>
   <LockAction @register="register" />
-  <ChangeApi @register="registerApi" />
+  <ChangeApi @register="registerApi" /> -->
+  <div></div>
 </template>
 <script lang="ts" setup>
   import { Dropdown, Menu } from 'ant-design-vue';
