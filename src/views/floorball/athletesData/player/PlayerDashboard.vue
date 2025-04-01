@@ -21,13 +21,10 @@
 
       <!-- 关键绩效指标卡片 -->
       <div class="md:flex enter-y">
-        <Card
-          size="small"
-          title="平均移动距离"
-          class="ant-card css-n9spb6 ant-card-bordered ant-card-small md:w-1/4 w-full !md:mt-0 !md:mr-4"
-        >
+        <Card size="small" title="平均移动距离" class="ant-card md:w-1/4 w-full !md:mt-0 !md:mr-4">
           <template #extra>
-            <Tag color="green">{{ '每场' }}</Tag>
+            <Tag color="green">每场</Tag>
+            <BasicHelp class="ml-2" :text="movementText" />
           </template>
           <div class="py-4 px-4 flex justify-between items-center">
             <CountTo
@@ -55,10 +52,11 @@
         <Card
           size="small"
           title="平均转向次数"
-          class="ant-card css-n9spb6 ant-card-bordered ant-card-small md:w-1/4 w-full !md:mt-0 !md:mr-4 !mt-4"
+          class="ant-card md:w-1/4 w-full !md:mt-0 !md:mr-4 !mt-4"
         >
           <template #extra>
-            <Tag color="green">{{ '每场' }}</Tag>
+            <Tag color="green">每场</Tag>
+            <BasicHelp class="ml-2" :text="directionChangesText" />
           </template>
           <div class="py-4 px-4 flex justify-between items-center">
             <CountTo
@@ -86,14 +84,15 @@
         <Card
           size="small"
           title="平均高强度时长"
-          class="ant-card css-n9spb6 ant-card-bordered ant-card-small md:w-1/4 w-full !md:mt-0 !md:mr-4 !mt-4"
+          class="ant-card md:w-1/4 w-full !md:mt-0 !md:mr-4 !mt-4"
         >
           <template #extra>
-            <Tag color="green">{{ '每场' }}</Tag>
+            <Tag color="green">每场</Tag>
+            <BasicHelp class="ml-2" :text="highIntensityText" />
           </template>
           <div class="py-4 px-4 flex justify-between items-center">
             <CountTo
-              suffix=" 分钟"
+              suffix=" 秒"
               :startVal="1"
               :endVal="averageHighIntensityTime"
               class="text-2xl"
@@ -105,7 +104,7 @@
           <div class="p-2 px-4 flex justify-between">
             <span>总高强度时长</span>
             <CountTo
-              suffix=" 分钟"
+              suffix=" 秒"
               :startVal="1"
               :endVal="totalHighIntensityTime"
               :decimals="2"
@@ -117,14 +116,15 @@
         <Card
           size="small"
           title="平均最高速度"
-          class="ant-card css-n9spb6 ant-card-bordered ant-card-small md:w-1/4 w-full !md:mt-0 !md:mr-4 !mt-4"
+          class="ant-card md:w-1/4 w-full !md:mt-0 !md:mr-4 !mt-4"
         >
           <template #extra>
-            <Tag color="green">{{ '每场' }}</Tag>
+            <Tag color="green">每场</Tag>
+            <BasicHelp class="ml-2" :text="maxSpeedText" />
           </template>
           <div class="py-4 px-4 flex justify-between items-center">
             <CountTo
-              suffix=" km/h"
+              suffix=" m/s"
               :startVal="1"
               :endVal="averageMaxSpeed"
               class="text-2xl"
@@ -136,7 +136,7 @@
           <div class="p-2 px-4 flex justify-between">
             <span>最高速度</span>
             <CountTo
-              suffix=" km/h"
+              suffix=" m/s"
               :startVal="1"
               :endVal="maxSpeed"
               :decimals="2"
@@ -145,7 +145,6 @@
           </div>
         </Card>
       </div>
-
       <Divider />
 
       <Card :tab-list="tabList" :active-tab-key="activeTab" @tab-change="onTabChange">
@@ -182,7 +181,7 @@
 </template>
 
 <script setup lang="ts">
-  import { ref, onMounted } from 'vue';
+  import { ref, onMounted, computed } from 'vue';
   import { useMessage } from '@/hooks/web/useMessage';
   import { Card, Divider, Descriptions, Tag } from 'ant-design-vue';
   import { getPlayerResults, getPlayerInfo } from '@/views/floorball/athletesData/api/player';
@@ -192,6 +191,36 @@
   import SpeedsPlots from './SpeedsPlots.vue';
   import MovementPlots from './MovementPlots.vue';
   import PlayerRadarChart from './PlayerRadarChart.vue';
+  import BasicHelp from '@/components/Basic/src/BasicHelp.vue';
+
+  const standardValues = {
+    averageTotalMovement: 5000, // 标准移动距离（米）
+    averageDirectionChanges: 300, // 标准转向次数
+    averageHighIntensityTime: 20, // 标准高强度时长（分钟）
+    averageMaxSpeed: 3, // 标准最高速度（m/s）
+  };
+
+  function getPerformanceText(value, standard) {
+    const ratio = value.value / standard;
+    if (ratio < 0.65) return `显著低于平均水平（标准值: ${standard})`;
+    if (ratio < 0.85) return `略低于平均水平（标准值: ${standard})`;
+    if (ratio <= 1.15) return `在平均水平（标准值: ${standard})`;
+    if (ratio <= 1.35) return `略高于平均水平（标准值: ${standard})`;
+    return `显著高于平均水平（标准值: ${standard})`;
+  }
+
+  const movementText = computed(() =>
+    getPerformanceText(averageTotalMovement, standardValues.averageTotalMovement),
+  );
+  const directionChangesText = computed(() =>
+    getPerformanceText(averageDirectionChanges, standardValues.averageDirectionChanges),
+  );
+  const highIntensityText = computed(() =>
+    getPerformanceText(averageHighIntensityTime, standardValues.averageHighIntensityTime),
+  );
+  const maxSpeedText = computed(() =>
+    getPerformanceText(averageMaxSpeed, standardValues.averageMaxSpeed),
+  );
 
   const activeTab = ref('speed');
   const tabList = [

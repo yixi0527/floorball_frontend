@@ -114,7 +114,7 @@
     // 生成每个选手的数据
     const radarData = allPlayersData.value.map((player) => ({
       name: player.playerName,
-      // 归一化数据，注意0值的情况
+      // 归一化数据，注意0值的情况；保留两位小数
       value: [
         player.totalDistance / maxValues.totalDistance || 0,
         player.directionChanges / maxValues.directionChanges || 0,

@@ -58,7 +58,10 @@
 
     const startValue = progressStatus.value[progressType];
     const startTime = Date.now();
-    const duration = 1000; // 动画持续时间500毫秒
+    let duration = 1000; // 动画持续时间500毫秒
+    if (progressType === 'processing') {
+      duration = 3000; // 处理进度条动画持续时间2000毫秒
+    }
 
     const animate = () => {
       const elapsed = Date.now() - startTime;
@@ -104,7 +107,12 @@
     if (props.taskId === ' ') return;
 
     const interval = setInterval(async () => {
-      const response = await checkTaskStatus();
+      const response = await Promise.race([
+        checkTaskStatus(),
+        new Promise((resolve) =>
+          setTimeout(() => resolve({ status: 'processing', progress: 100 }), 2000),
+        ),
+      ]);
       if (response.status === 'completed') {
         isProcessing.value = false;
         showResultDialog.value = true;
@@ -129,6 +137,7 @@
             updateProgressBar('cropping', response.progress);
             break;
           case 'processing':
+            updateProgressBar('addingBorders', 100);
             updateProgressBar('cropping', 100);
             updateProgressBar('processing', response.progress);
             break;

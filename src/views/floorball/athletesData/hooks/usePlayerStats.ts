@@ -28,15 +28,15 @@ export function usePlayerStats(playerResults: Ref<any[]>) {
     return totalDirectionChanges.value / playerResults.value.length;
   });
 
-  // 总高强度运动时间（转为分钟）
+  // 总高强度运动时间
   const totalHighIntensityTime = computed(() => {
-    return (
-      playerResults.value.reduce((sum, game) => sum + (game.high_intensity_running_time || 0), 0) /
-      60
+    return playerResults.value.reduce(
+      (sum, game) => sum + (game.high_intensity_running_time || 0),
+      0,
     );
   });
 
-  // 平均高强度运动时间（分钟）
+  // 平均高强度运动时间
   const averageHighIntensityTime = computed(() => {
     if (playerResults.value.length === 0) return 0;
     return totalHighIntensityTime.value / playerResults.value.length;

@@ -53,7 +53,7 @@
 
     const totalDuration = 100; // 60秒
     const updateInterval = 1000; // 每秒更新一次
-    const step = 99 / totalDuration; // 每秒增加的百分比 (99% / 60秒)
+    const step = (99 / totalDuration) * (1 + (Math.random() - 0.5) * 0.05); // 添加微小的随机扰动
 
     intervalId = setInterval(async () => {
       if (percent.value < 99) {

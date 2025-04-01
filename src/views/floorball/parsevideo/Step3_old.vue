@@ -26,8 +26,8 @@
 
 <script lang="ts" setup>
   import { defineProps, defineEmits, onMounted, h, ref } from 'vue';
-  import playerTable from '@/views/floorball/dataset/playerTable.vue';
-  import match from '@/views/floorball/match/match.vue';
+  // import playerTable from '@/views/floorball/dataset/playerTable.vue';
+  // import match from '@/views/floorball/match/match.vue';
   import defaultImage from '@/assets/images/defaultPlayerPhoto.jpg';
   import { BasicColumn } from '@/components/Table';
   import { useMessage } from '@/hooks/web/useMessage';
